@@ -1,9 +1,0 @@
-[project]
-name = "project-git-release-connector-gitea"
-version = "0.0.1"
-dependencies = [
-    "project-git-release<=0.1.0"
-]
-
-[project.entry-points."pgr.connectors"]
-gitea = "pgr_connector_gitea:GiteaConnector"

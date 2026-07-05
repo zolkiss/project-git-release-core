@@ -3,10 +3,4 @@
 *.iml
 
 **/*.egg-info
-
-# Local testing files
-http-client.private.env.json
-.testing
-
-# Sample connector build folder
-connectors/*/build
+build
