@@ -70,15 +70,15 @@ class RunnerHelper:
                                                  "Controls if the missing version should be appended to the marked lines, or not",
                                                  True))
     version_config_marker: RunnerHelperData[str] = field(
-        default_factory=lambda: RunnerHelperData("PGR_VERSINO_CONFIG_MARKER",
+        default_factory=lambda: RunnerHelperData("PGR_VERSION_CONFIG_MARKER",
                                                  "The marker used for inline version update",
                                                  "x-git-release-version"))
     version_config_marker_block_start: RunnerHelperData[str] = field(
-        default_factory=lambda: RunnerHelperData("PGR_VERSIN_CONFIG_MARKER_BLOCK_START",
+        default_factory=lambda: RunnerHelperData("PGR_VERSION_CONFIG_MARKER_BLOCK_START",
                                                  "The marker used for end of block version update. Support multiple lines, but if append is enabled, it will be appended to every line",
                                                  "x-git-release-version-start"))
     version_config_marker_block_end: RunnerHelperData[str] = field(
-        default_factory=lambda: RunnerHelperData("PGR_VERSIN_CONFIG_MARKER_BLOCK_END",
+        default_factory=lambda: RunnerHelperData("PGR_VERSION_CONFIG_MARKER_BLOCK_END",
                                                  "The marker used for end of block version update. Support multiple lines, but if append is enabled, it will be appended to every line",
                                                  "x-git-release-version-end"))
     auto_delete_temp_dir: RunnerHelperData[str] = field(
