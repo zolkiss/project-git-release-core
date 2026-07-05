@@ -159,13 +159,14 @@ def _validate_git_repo_properties(ctx: typer.Context, merged_envs: dict):
 class Actions(str, Enum):
     update = "update"
     release = "release"
-    update_and_release = "update_and_release"
+    auto = "auto"
 
 
 @app.command()
 def run(
         ctx: typer.Context,
-        action: Annotated[Actions, typer.Argument(help="Selectable action to perform.")],
+        action: Annotated[
+            Actions, typer.Argument(help="Selectable action to perform. The default is auto select")] = Actions.auto,
         list_env: Annotated[bool,
         typer.Option(
             help="Lists the available environment variables, which are usable both as OS Envs and int .env files)",
@@ -280,9 +281,8 @@ def run(
     if action == Actions.update:
         engine.update_version()
     elif action ==  Actions.release:
-        log.error("Unsupported operation so far...")
-        exit(1)
-    elif action == Actions.update_and_release:
+        engine.release_latest_release_pr()
+    elif action == Actions.auto:
         log.error("Unsupported operation so far...")
         exit(1)
 

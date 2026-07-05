@@ -1,7 +1,16 @@
 @startuml
+<style>
+    .finished {
+        BackgroundColor: #80EF80
+    }
+</style>
 start
-:Get unreleased PR's commit hash;
-:Tag SEMVER on the commit;
-:Create Release for the commit;
+:Find the latest merged release PR; <<finished>>
+:Parse the actual version from the commit name; <<finished>>
+if(Version already exists for that change?) then (no) <<finished>>
+    :Create Release for the commit;
+    :Tag SEMVER on the commit;
+else (yes)
+endif
 stop
 @enduml

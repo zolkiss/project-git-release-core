@@ -12,10 +12,16 @@ class Connector(ABC):
         self.config = config
 
     @abstractmethod
-    def get_latest_open_release_pr(self, state: str = "open") -> GitReleasePR | None: ...
+    def get_latest_release_pr(self, state: str) -> GitReleasePR | None: ...
+
+    @abstractmethod
+    def get_latest_release_prs(self, state: str, limit=10) -> list[GitReleasePR]: ...
 
     @abstractmethod
     def get_latest_release(self) -> GitRelease | None: ...
+
+    @abstractmethod
+    def get_release_by_tag(self, tag: str) -> GitRelease | None: ...
 
     @abstractmethod
     def get_commit_details(self, commit_hash: GitHashAndMsg) -> CommitDetails | None: ...
@@ -38,6 +44,7 @@ class GitReleasePR:
     title: str
     comment: str
     commit_sha: str
+    merged: bool
 
 
 @dataclass(frozen=True)
