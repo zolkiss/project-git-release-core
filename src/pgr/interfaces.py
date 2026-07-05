@@ -15,9 +15,6 @@ class Connector(ABC):
     def get_latest_open_release_pr(self, state: str = "open") -> GitReleasePR | None: ...
 
     @abstractmethod
-    def update_first_commit_pr(self, pull_request_id: str): ...
-
-    @abstractmethod
     def get_latest_release(self) -> GitRelease | None: ...
 
     @abstractmethod
