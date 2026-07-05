@@ -1,4 +1,5 @@
 import os
+from enum import Enum
 from importlib.metadata import entry_points
 from pathlib import Path
 from typing import Annotated, cast, TypeVar
@@ -6,7 +7,7 @@ from typing import Annotated, cast, TypeVar
 import typer
 from typer._click.core import ParameterSource
 
-from pgr import log
+from pgr import log, ReleaseEngine
 from pgr.config import ReleaseConfig
 from pgr.helper import runner_config
 
@@ -155,9 +156,16 @@ def _validate_git_repo_properties(ctx: typer.Context, merged_envs: dict):
         )
 
 
+class Actions(str, Enum):
+    update = "update"
+    release = "release"
+    update_and_release = "update_and_release"
+
+
 @app.command()
 def run(
         ctx: typer.Context,
+        action: Annotated[Actions, typer.Argument(help="Selectable action to perform.")],
         list_env: Annotated[bool,
         typer.Option(
             help="Lists the available environment variables, which are usable both as OS Envs and int .env files)",
@@ -268,4 +276,14 @@ def run(
                                                           runner_config.auto_delete_temp_dir.env_name,
                                                           "auto_delete_temp_dir")
     )
+    engine = ReleaseEngine(connector, config, auto_delete_temp_dir=False)
+    if action == Actions.update:
+        engine.update_version()
+    elif action ==  Actions.release:
+        log.error("Unsupported operation so far...")
+        exit(1)
+    elif action == Actions.update_and_release:
+        log.error("Unsupported operation so far...")
+        exit(1)
+
     log.info("Program finished successfully...")

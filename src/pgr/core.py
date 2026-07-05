@@ -21,7 +21,7 @@ class ReleaseEngine:
         self.git = GitCommander(config, self.temp_dir.name)
         self.config = config
 
-    def do_release(self):
+    def update_version(self):
         self.prepare_release_branch_locally()
 
         latest_release_commit = self.connector.get_latest_release()

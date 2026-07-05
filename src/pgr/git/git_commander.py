@@ -46,7 +46,7 @@ class GitCommander:
         command = ["git", "clone", self.config.git_url(), self.temp_dir,
                    self.config.git_verbose_flag()]
         self.__log_command(command)
-        return self.__run_git_command(command, "Error while cloning repository: %s", False).result
+        return self.__run_git_command(command, f"Error while cloning repository: {self.config.git_url()}", False).result
 
     def is_release_branch_exists(self) -> bool:
         command = ["git", "ls-remote", "--exit-code", "origin",
