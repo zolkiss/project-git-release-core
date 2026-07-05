@@ -48,7 +48,7 @@ class RunnerHelper:
     release_commit_message: RunnerHelperData[str] = field(
         default_factory=lambda: RunnerHelperData("PGR_RELEASE_COMMIT_MESSAGE",
                                                  "The generated title of Pull Requests and Commits. Supports %VERSION% placeholder for the actual version",
-                                                 "chore: Releasing version %VERSION%"))
+                                                 "chore: Release version %VERSION%"))
     release_version_prefix: RunnerHelperData[str] = field(
         default_factory=lambda: RunnerHelperData("PGR_RELEASE_VERSION_PREFIX",
                                                  "Optional prefix for semantic versioning",

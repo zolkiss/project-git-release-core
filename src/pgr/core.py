@@ -3,7 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from pgr import log
-from pgr.change_log import generate_change_chapters
+from pgr.change_log import generate_change_chapters, generate_release_log
 from pgr.config.release_config import ReleaseConfig
 from pgr.conv_commit import resolver
 from pgr.conv_commit.resolver import GroupedConvCommits, ChangeType
@@ -47,6 +47,22 @@ class ReleaseEngine:
         log.info("Unreleased chore PR: %s ('%s', %s)", latest_unreleased_version.tag_name,
                  latest_unreleased_version.tag_message, latest_unreleased_version.commit_sha)
 
+        self.__checkout_default_branch()
+        latest_release_commit = self.connector.get_latest_release()
+        commit_list = self.__find_commits_since_last_release(latest_release_commit,
+                                                             latest_unreleased_version)
+        if len(commit_list) == 0:
+            log.info("There is no commit since the latest release. Quitting...")
+            exit(0)
+        commits_without_release = [commit for commit in commit_list if
+                                   commit.hash != latest_unreleased_version.commit_sha]
+        grouped_commits = resolver.group_conv_commit_details(resolver.resolve_commit_messages(commits_without_release))
+        change_log = generate_release_log(grouped_commits, latest_release_commit, latest_unreleased_version)
+        log.info("Generated changelog for release:\n%s", change_log)
+
+        response = self.connector.create_release(latest_unreleased_version, change_log)
+        log.info("Release is created with response:\n%s", response)
+
     def __get_latest_unreleased_version(self) -> GitRelease | None:
         closed_release_prs = self.connector.get_latest_release_prs("closed")
         latest_merged_release_pr = None
@@ -74,10 +90,7 @@ class ReleaseEngine:
         return GitRelease(version, latest_merged_release_pr.title, latest_merged_release_pr.commit_sha)
 
     def __prepare_release_branch_locally(self):
-        repository_cloned = self.git.clone_repository()
-        if not repository_cloned:
-            log.info("Cannot clone repository. Exiting...")
-            exit(1)
+        self.__checkout_default_branch()
         release_branch_exists = self.git.is_release_branch_exists()
         log.debug("Does release branch exists?: %s", release_branch_exists)
         if not release_branch_exists:
@@ -86,6 +99,12 @@ class ReleaseEngine:
             release_branch_checkout = self.git.update_release_branch()
         if not release_branch_checkout:
             log.info("Error during release branch checkout...")
+            exit(1)
+
+    def __checkout_default_branch(self):
+        repository_cloned = self.git.clone_repository()
+        if not repository_cloned:
+            log.info("Cannot clone repository. Exiting...")
             exit(1)
 
     def __update_files(self, grouped_commits: GroupedConvCommits, git_release: GitRelease | None,
@@ -116,12 +135,18 @@ class ReleaseEngine:
             log.error("Couldn't force-push the changes. Please check the logs.")
             exit(1)
 
-    def __find_commits_since_last_release(self, latest_release_commit: GitRelease | None) -> list[CommitDetails]:
+    def __find_commits_since_last_release(self, latest_release_commit: GitRelease | None,
+                                          hash_until: GitRelease | None = None) -> \
+            list[CommitDetails]:
         commit_sha = None
         if latest_release_commit is not None:
             commit_sha = latest_release_commit.commit_sha
 
-        hash_and_msg_list = self.git.get_commits_since_latest_release(commit_sha)
+        hash_until_sha = None
+        if hash_until is not None:
+            hash_until_sha = hash_until.commit_sha
+
+        hash_and_msg_list = self.git.get_commits_since_latest_release(commit_sha, hash_until_sha)
 
         return [
             details
@@ -172,7 +197,6 @@ class ReleaseEngine:
         else:
             semver_parts[2] = str(int(semver_parts[2]) + 1)
 
-        semver_parts[highest_change] = str(int(semver_parts[highest_change]) + 1)
         return NewVersion(".".join(semver_parts), self.config.release_version_prefix)
 
     def __update_pull_request(self, next_version: NewVersion,

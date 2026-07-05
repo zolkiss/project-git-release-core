@@ -33,6 +33,10 @@ class Connector(ABC):
     def update_release_pr(self, release_pr_number: int, pull_request_title: str,
                           pull_request_commit_text: str) -> GitReleasePR | None: ...
 
+    @abstractmethod
+    def create_release(self, latest_unreleased_version: GitRelease, change_log: str, draft: bool = False,
+                       pre_release: bool = False) -> GitReleaseResponse: ...
+
     def validate_release_version(self, version: str) -> bool:
         return build_version_regex(self.config.release_version_prefix).match(version) is not None
 
@@ -52,6 +56,16 @@ class GitRelease:
     tag_name: str
     tag_message: str
     commit_sha: str
+
+
+@dataclass(frozen=True)
+class GitReleaseResponse:
+    tag_name: str
+    name: str
+    commit_sha: str
+    id: int
+    draft: bool
+    pre_release: bool
 
 
 @dataclass(frozen=True)
@@ -79,4 +93,3 @@ class NewVersion:
 
     def get_full_version(self):
         return f"{self.prefix}{self.semver}"
-

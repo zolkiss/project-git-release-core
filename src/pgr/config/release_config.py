@@ -5,7 +5,7 @@ class ReleaseConfig:
                  default_branch: str = "main",
                  git_print_stdout: bool = True,
                  git_print_stderr: bool = True,
-                 release_commit_message: str = "chore: Releasing version %VERSION%",
+                 release_commit_message: str = "chore: Release version %VERSION%",
                  release_version_prefix: str = "",
                  changelog_file: str = "CHANGELOG.md",
                  version_file: str | None = "version.txt",

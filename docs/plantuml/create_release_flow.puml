@@ -8,8 +8,8 @@ start
 :Find the latest merged release PR; <<finished>>
 :Parse the actual version from the commit name; <<finished>>
 if(Version already exists for that change?) then (no) <<finished>>
-    :Create Release for the commit;
-    :Tag SEMVER on the commit;
+    :Create Release for the commit; <<finished>>
+    :Tag SEMVER on the commit; <<finished>>
 else (yes)
 endif
 stop
