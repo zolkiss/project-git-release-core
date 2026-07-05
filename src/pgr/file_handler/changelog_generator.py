@@ -53,7 +53,7 @@ class ChangelogGenerator:
     def __generate_change_log_new_version(self, grouped_commits: GroupedConvCommits, new_version: NewVersion,
                                           current_version: str | None = None) -> str:
         release_url = f"{self.config.git_url()}/releases/tag/{new_version.get_full_version()}"
-        new_changes = f"## [{new_version.get_full_version()}]({release_url}) (📅 {datetime.datetime.now().strftime("%Y-%m-%d")}\n)"
+        new_changes = f"## [{new_version.get_full_version()}]({release_url}) (📅 {datetime.datetime.now().strftime("%Y-%m-%d")})\n"
         if grouped_commits.has_breaking_change():
             new_changes += "\n".join(generate_change_chapters("Breaking changes",
                                                                            [grouped_commits.braking_changes]))
@@ -75,37 +75,3 @@ class ChangelogGenerator:
         # new_changes += "#### contributors: " + os.linesep
         new_changes += "---\n"
         return new_changes
-
-    # @staticmethod
-    # def __generate_change_chapters(chapter_title: str, changes: list[list[ConvCommitDetails]],
-    #                                include_type: bool = False) -> list[str]:
-    #     change_chapter = [f"### {chapter_title}"]
-    #     if len(changes) == 1:
-    #         final_changes = changes[0]
-    #     else:
-    #         final_changes = []
-    #         for change in changes:
-    #             final_changes.extend(change)
-    #
-    #     sorted_list = sorted(final_changes, key=lambda x: x.creation_datetime, reverse=True)
-    #
-    #     change_chapter.extend(ChangelogGenerator.__generate_change_records(sorted_list, include_type))
-    #     change_chapter.extend([""])
-    #     return change_chapter
-    #
-    # @staticmethod
-    # def __generate_change_records(changes: list[ConvCommitDetails], include_type: bool) -> list[
-    #     str]:
-    #     change_records = []
-    #     for change in changes:
-    #         if change.valid:
-    #             if change.scope is not None and include_type:
-    #                 scope = f"**{change.type}({change.scope}):**"
-    #             elif change.scope is not None:
-    #                 scope = f"**{change.scope}:**"
-    #             else:
-    #                 scope = ""
-    #             change_records.append(f"* {scope} {change.description}")
-    #         else:
-    #             change_records.append(f"* {change.description}")
-    #     return change_records

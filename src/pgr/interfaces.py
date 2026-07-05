@@ -12,13 +12,16 @@ class Connector(ABC):
         self.config = config
 
     @abstractmethod
-    def get_latest_open_release_pr(self, state: str = "open") -> GitReleasePR | None: ...
+    def get_latest_release_pr(self, state: str) -> GitReleasePR | None: ...
 
     @abstractmethod
-    def update_first_commit_pr(self, pull_request_id: str): ...
+    def get_latest_release_prs(self, state: str, limit=10) -> list[GitReleasePR]: ...
 
     @abstractmethod
     def get_latest_release(self) -> GitRelease | None: ...
+
+    @abstractmethod
+    def get_release_by_tag(self, tag: str) -> GitRelease | None: ...
 
     @abstractmethod
     def get_commit_details(self, commit_hash: GitHashAndMsg) -> CommitDetails | None: ...
@@ -29,6 +32,10 @@ class Connector(ABC):
     @abstractmethod
     def update_release_pr(self, release_pr_number: int, pull_request_title: str,
                           pull_request_commit_text: str) -> GitReleasePR | None: ...
+
+    @abstractmethod
+    def create_release(self, latest_unreleased_version: GitRelease, change_log: str, draft: bool = False,
+                       pre_release: bool = False) -> GitReleaseResponse: ...
 
     def validate_release_version(self, version: str) -> bool:
         return build_version_regex(self.config.release_version_prefix).match(version) is not None
@@ -41,6 +48,7 @@ class GitReleasePR:
     title: str
     comment: str
     commit_sha: str
+    merged: bool
 
 
 @dataclass(frozen=True)
@@ -48,6 +56,16 @@ class GitRelease:
     tag_name: str
     tag_message: str
     commit_sha: str
+
+
+@dataclass(frozen=True)
+class GitReleaseResponse:
+    tag_name: str
+    name: str
+    commit_sha: str
+    id: int
+    draft: bool
+    pre_release: bool
 
 
 @dataclass(frozen=True)
@@ -75,4 +93,3 @@ class NewVersion:
 
     def get_full_version(self):
         return f"{self.prefix}{self.semver}"
-
