@@ -282,7 +282,7 @@ def run(
     if action == Actions.update:
         engine.update_version()
     elif action ==  Actions.release:
-        engine.release_latest_release_pr()
+        engine.release_unreleased_prs()
     elif action == Actions.auto:
         log.error("Unsupported operation so far...")
         exit(1)
