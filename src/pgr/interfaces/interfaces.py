@@ -20,6 +20,12 @@ class GitRelease:
 
 
 @dataclass(frozen=True)
+class ShortCommitData:
+    message: str
+    sha: str
+
+
+@dataclass(frozen=True)
 class GitReleaseResponse:
     tag_name: str
     name: str

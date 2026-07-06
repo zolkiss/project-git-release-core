@@ -26,17 +26,20 @@ class ReleaseEngine:
         self.__prepare_release_branch_locally()
 
         latest_release_commit = self.connector.get_latest_release()
-        potential_unreleased_versions = self.__find_unreleased_versions(latest_release_commit)
+        latest_unreleased_commit = self.__find_latest_unreleased_versions(latest_release_commit)
 
-        exit(1)
-        commit_list = self.__find_commits_since_last_release(latest_release_commit)
+        actual_commit = latest_release_commit
+        if latest_unreleased_commit is not None:
+            actual_commit = latest_unreleased_commit
+
+        commit_list = self.__find_commits_since_last_release(actual_commit)
         if len(commit_list) == 0:
             log.info("There is no commit since the latest release. Quitting...")
             exit(0)
 
         grouped_commits = resolver.group_conv_commit_details(resolver.resolve_commit_messages(commit_list))
-        next_version = self.__calculate_next_version(grouped_commits, latest_release_commit)
-        self.__update_files(grouped_commits, latest_release_commit, next_version)
+        next_version = self.__calculate_next_version(grouped_commits, actual_commit)
+        self.__update_files(grouped_commits, actual_commit, next_version)
         self.__force_push_changes(next_version)
         self.__update_pull_request(next_version, grouped_commits)
 
@@ -65,8 +68,22 @@ class ReleaseEngine:
         response = self.connector.create_release(latest_unreleased_version, change_log)
         log.info("Release is created with response:\n%s", response)
 
-    def __find_unreleased_versions(self, latest_release: GitRelease | None):
-        self.git.get_file_history(f"{self.config.version_file}", False, latest_release)
+    def __find_latest_unreleased_versions(self, latest_release: GitRelease | None) -> GitRelease | None:
+        commits = self.git.get_file_history(f"{self.config.version_file}", False)
+
+        pattern = build_version_regex(self.config.release_version_prefix)
+        for commit in commits:
+            if latest_release is not None and commit.sha == latest_release.commit_sha:
+                log.info(f"Found previous release, stopping unreleased commit searching")
+                break
+
+            search_result = pattern.search(commit.message)
+            if search_result is not None:
+                version = search_result.group(VersionParts.FULL_VERSION)
+                log.info(f"Found latest unreleased version: {commit.message} ({commit.sha})")
+                return GitRelease(version, commit.message, commit.sha)
+
+        return None
 
     def __get_latest_unreleased_version(self) -> GitRelease | None:
         closed_release_prs = self.connector.get_latest_release_prs("closed")

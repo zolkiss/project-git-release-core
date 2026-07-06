@@ -2,8 +2,8 @@ import subprocess
 
 from pgr import log
 from pgr.config.release_config import ReleaseConfig
-from pgr.interfaces import GitRelease, GitCmdResult, GitHashAndMsg
-from pgr.semver_util import build_version_regex, VersionParts
+from pgr.interfaces import GitCmdResult, GitHashAndMsg
+from pgr.interfaces.interfaces import ShortCommitData
 
 COMMIT_SEPARATOR = "|"
 
@@ -138,7 +138,7 @@ class GitCommander:
             return_list.append(GitHashAndMsg(hash=parts[0], message=parts[1]))
         return return_list
 
-    def get_file_history(self, path: str, reverse_order: bool, latest_release: GitRelease | None) -> list[GitRelease]:
+    def get_file_history(self, path: str, reverse_order: bool) -> list[ShortCommitData]:
         command = ["git", "log", f"origin/{self.config.default_branch}"]
 
         if reverse_order:
@@ -152,23 +152,15 @@ class GitCommander:
             exit(1)
 
         file_history = []
-        pattern = build_version_regex(self.config.release_version_prefix)
         for line in commits.stdout.splitlines():
             line_parts = line.split(COMMIT_SEPARATOR)
             if len(line_parts) != 2:
                 log.warn(f"Cannot split commit line '{line}'")
                 continue
-            if latest_release is not None and line_parts[0] == latest_release.commit_sha:
-                log.info(f"Found previous release, stopping unreleased commit processing")
-                break
-            search_result = pattern.search(line_parts[1])
-            if search_result is not None:
-                version = search_result.group(VersionParts.FULL_VERSION)
-                log.info(f"Found unreleased version: {line_parts[1]} ({line_parts[0]})")
-                file_history.append(GitRelease(
-                    tag_name=version,
-                    tag_message=line_parts[1],
-                    commit_sha=line_parts[0])
-                )
+
+            file_history.append(ShortCommitData(
+                message=line_parts[1],
+                sha=line_parts[0])
+            )
 
         return file_history
