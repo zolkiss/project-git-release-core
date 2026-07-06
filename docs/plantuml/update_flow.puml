@@ -11,8 +11,12 @@ else (yes)
     :Checkout release branch; <<finished>>
     :Rebase to the lastest default; <<finished>>
 endif
-if(Does have previous release?) then (yes) <<finished>>
-    :Collect commits since the last release; <<finished>>
+:Get latest release reference; <<finished>>
+if(Has unreleased release PR?) then (yes) <<finished>>
+    :Update latest release reference; <<finished>>
+endif
+if(Is the latest release reference valid?) then (yes) <<finished>>
+    :Collect commits since the last release PR; <<finished>>
 else (no)
     :Collect commits from the beginning; <<finished>>
 endif
