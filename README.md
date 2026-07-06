@@ -83,7 +83,7 @@ the release or update methods.
 As input parameters, it accepts:
 
 - [ReleaseConfig](src/pgr/config/release_config.py) instance
-- [Connector](src/pgr/interfaces.py#L10)
+- [Connector](src/pgr/connector.py#L18)
 
 #### Sample
 

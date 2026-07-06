@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from pgr import log
+from pgr import log, Connector
 from pgr.change_log import generate_change_chapters, generate_release_log
 from pgr.config.release_config import ReleaseConfig
 from pgr.conv_commit import resolver
@@ -11,7 +11,7 @@ from pgr.file_handler.changelog_generator import ChangelogGenerator
 from pgr.file_handler.extra_file_version_updater import ExtraFileVersionUpdater
 from pgr.file_handler.version_file_generator import generate_version_file
 from pgr.git import GitCommander
-from pgr.interfaces import Connector, CommitDetails, GitRelease, NewVersion, GitReleasePR
+from pgr.interfaces import CommitDetails, GitRelease, NewVersion, GitReleasePR
 from pgr.semver_util import build_version_regex, VersionParts
 
 
@@ -66,7 +66,7 @@ class ReleaseEngine:
         log.info("Release is created with response:\n%s", response)
 
     def __find_unreleased_versions(self, latest_release: GitRelease | None):
-        self.git.get_file_history(f"./{self.config.version_file}", True)
+        self.git.get_file_history(f"{self.config.version_file}", False, latest_release)
 
     def __get_latest_unreleased_version(self) -> GitRelease | None:
         closed_release_prs = self.connector.get_latest_release_prs("closed")

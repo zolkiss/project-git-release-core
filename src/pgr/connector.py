@@ -1,9 +1,7 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from datetime import datetime
+from abc import abstractmethod, ABC
 
-from pgr.config.release_config import ReleaseConfig
-from pgr.git import GitHashAndMsg
+from pgr.config import ReleaseConfig
+from pgr.interfaces.interfaces import GitRelease, GitReleaseResponse, GitReleasePR, GitHashAndMsg, CommitDetails
 from pgr.semver_util import build_version_regex
 
 
@@ -39,57 +37,3 @@ class Connector(ABC):
 
     def validate_release_version(self, version: str) -> bool:
         return build_version_regex(self.config.release_version_prefix).match(version) is not None
-
-
-@dataclass(frozen=True)
-class GitReleasePR:
-    id: int
-    number: int
-    title: str
-    comment: str
-    commit_sha: str
-    merged: bool
-
-
-@dataclass(frozen=True)
-class GitRelease:
-    tag_name: str
-    tag_message: str
-    commit_sha: str
-
-
-@dataclass(frozen=True)
-class GitReleaseResponse:
-    tag_name: str
-    name: str
-    commit_sha: str
-    id: int
-    draft: bool
-    pre_release: bool
-
-
-@dataclass(frozen=True)
-class CommitDetails:
-    hash: str
-    title: str
-    creation_time: datetime
-    body: str | None
-    footers: list[str]
-
-    @classmethod
-    def of(cls,
-           hash_of: str, title_of: str,
-           creation_time: datetime,
-           body: str | None = None, footers: list[str] | None = None) -> CommitDetails:
-        if footers is None:
-            footers = []
-        return cls(hash_of, title_of, creation_time, body, footers)
-
-
-@dataclass(frozen=True)
-class NewVersion:
-    semver: str
-    prefix: str
-
-    def get_full_version(self):
-        return f"{self.prefix}{self.semver}"

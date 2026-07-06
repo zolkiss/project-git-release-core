@@ -6,7 +6,7 @@ log = create_logger(name=__name__, level=logging.DEBUG)
 
 log.addHandler(create_console_handler(level=logging.DEBUG))
 
+from pgr.connector import Connector
 from pgr.core import ReleaseEngine
-from pgr.interfaces import Connector
 
 __all__ = ["Connector", "ReleaseEngine", "create_logger", "create_console_handler", "log"]
