@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from pgr import log
+from pgr import log, Connector
 from pgr.change_log import generate_change_chapters, generate_release_log
 from pgr.config.release_config import ReleaseConfig
 from pgr.conv_commit import resolver
@@ -11,7 +11,7 @@ from pgr.file_handler.changelog_generator import ChangelogGenerator
 from pgr.file_handler.extra_file_version_updater import ExtraFileVersionUpdater
 from pgr.file_handler.version_file_generator import generate_version_file
 from pgr.git import GitCommander
-from pgr.interfaces import Connector, CommitDetails, GitRelease, NewVersion, GitReleasePR
+from pgr.interfaces import CommitDetails, GitRelease, NewVersion, GitReleasePR
 from pgr.semver_util import build_version_regex, VersionParts
 
 
@@ -26,42 +26,80 @@ class ReleaseEngine:
         self.__prepare_release_branch_locally()
 
         latest_release_commit = self.connector.get_latest_release()
+        latest_unreleased_commit = self.__find_latest_unreleased_version(latest_release_commit)
 
-        commit_list = self.__find_commits_since_last_release(latest_release_commit)
+        actual_commit = latest_release_commit
+        if latest_unreleased_commit is not None:
+            actual_commit = latest_unreleased_commit
+
+        commit_list = self.__find_commits_since_last_release(actual_commit)
         if len(commit_list) == 0:
             log.info("There is no commit since the latest release. Quitting...")
             exit(0)
 
         grouped_commits = resolver.group_conv_commit_details(resolver.resolve_commit_messages(commit_list))
-        next_version = self.__calculate_next_version(grouped_commits, latest_release_commit)
-        self.__update_files(grouped_commits, latest_release_commit, next_version)
+        next_version = self.__calculate_next_version(grouped_commits, actual_commit)
+        self.__update_files(grouped_commits, actual_commit, next_version)
         self.__force_push_changes(next_version)
         self.__update_pull_request(next_version, grouped_commits)
 
-    def release_latest_release_pr(self):
-        latest_unreleased_version = self.__get_latest_unreleased_version()
-        if latest_unreleased_version is None:
+    def release_unreleased_prs(self):
+        self.__checkout_default_branch()
+        latest_release = self.connector.get_latest_release()
+        unreleased_versions = self.__find_latest_unreleased_versions(latest_release)
+
+        reverse_unreleased_versions = list(reversed(unreleased_versions))
+        if len(unreleased_versions) == 0:
             log.info("Cannot find unreleased merged PR")
             return
+        else:
+            for idx, unreleased_version in enumerate(reverse_unreleased_versions):
+                log.info("Unreleased chore PR: %s ('%s', %s)", unreleased_version.tag_name,
+                         unreleased_version.tag_message,
+                         unreleased_version.commit_sha)
+                if idx == 0:
+                    previous_release = latest_release
+                else:
+                    previous_release = reverse_unreleased_versions[idx - 1]
+                commit_list = self.__find_commits_since_last_release(previous_release,
+                                                                     unreleased_version)
+                if len(commit_list) == 0:
+                    log.info("There is no commit since the latest release. Quitting...")
+                    exit(0)
+                commits_without_release = [commit for commit in commit_list if
+                                           commit.hash != unreleased_version.commit_sha]
+                grouped_commits = resolver.group_conv_commit_details(
+                    resolver.resolve_commit_messages(commits_without_release))
+                change_log = generate_release_log(grouped_commits, previous_release, unreleased_version)
+                log.info("Generated changelog for release:\n%s", change_log)
 
-        log.info("Unreleased chore PR: %s ('%s', %s)", latest_unreleased_version.tag_name,
-                 latest_unreleased_version.tag_message, latest_unreleased_version.commit_sha)
+                response = self.connector.create_release(unreleased_version, change_log)
+                log.info("Release is created with response:\n%s", response)
 
-        self.__checkout_default_branch()
-        latest_release_commit = self.connector.get_latest_release()
-        commit_list = self.__find_commits_since_last_release(latest_release_commit,
-                                                             latest_unreleased_version)
-        if len(commit_list) == 0:
-            log.info("There is no commit since the latest release. Quitting...")
-            exit(0)
-        commits_without_release = [commit for commit in commit_list if
-                                   commit.hash != latest_unreleased_version.commit_sha]
-        grouped_commits = resolver.group_conv_commit_details(resolver.resolve_commit_messages(commits_without_release))
-        change_log = generate_release_log(grouped_commits, latest_release_commit, latest_unreleased_version)
-        log.info("Generated changelog for release:\n%s", change_log)
+    def __find_latest_unreleased_version(self, latest_release: GitRelease | None) -> GitRelease | None:
+        commits = self.__find_latest_unreleased_versions(latest_release)
+        if len(commits) == 0:
+            return None
+        else:
+            return commits[0]
 
-        response = self.connector.create_release(latest_unreleased_version, change_log)
-        log.info("Release is created with response:\n%s", response)
+    def __find_latest_unreleased_versions(self, latest_release: GitRelease | None) -> list[GitRelease]:
+        commits = self.git.get_file_history(f"{self.config.version_file}", False)
+
+        pattern = build_version_regex(self.config.release_version_prefix)
+        unreleased_versions = []
+        for commit in commits:
+            if latest_release is not None and commit.sha == latest_release.commit_sha:
+                log.info(f"Found previous release, stopping unreleased commit searching")
+                break
+
+            search_result = pattern.search(commit.message)
+            if search_result is not None:
+                version = search_result.group(VersionParts.FULL_VERSION)
+                log.info(f"Found latest unreleased version: {commit.message} ({commit.sha})")
+                unreleased_versions.append(GitRelease(version, commit.message, commit.sha))
+
+        return unreleased_versions
 
     def __get_latest_unreleased_version(self) -> GitRelease | None:
         closed_release_prs = self.connector.get_latest_release_prs("closed")

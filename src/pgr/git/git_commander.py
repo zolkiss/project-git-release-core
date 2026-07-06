@@ -2,7 +2,8 @@ import subprocess
 
 from pgr import log
 from pgr.config.release_config import ReleaseConfig
-from pgr.git.data_classes import GitCmdResult, GitHashAndMsg
+from pgr.interfaces import GitCmdResult, GitHashAndMsg
+from pgr.interfaces.interfaces import ShortCommitData
 
 COMMIT_SEPARATOR = "|"
 
@@ -136,3 +137,30 @@ class GitCommander:
             parts = commit.split(COMMIT_SEPARATOR)
             return_list.append(GitHashAndMsg(hash=parts[0], message=parts[1]))
         return return_list
+
+    def get_file_history(self, path: str, reverse_order: bool) -> list[ShortCommitData]:
+        command = ["git", "log", f"origin/{self.config.default_branch}"]
+
+        if reverse_order:
+            command.append("--reverse")
+
+        command.extend([f"--pretty=%H{COMMIT_SEPARATOR}%s", "--", f"{path}"])
+        self.__log_command(command)
+        commits = self.__run_git_command(command,
+                                         f"Error while getting commits for {path} on {self.config.default_branch}")
+        if not commits.result:
+            exit(1)
+
+        file_history = []
+        for line in commits.stdout.splitlines():
+            line_parts = line.split(COMMIT_SEPARATOR)
+            if len(line_parts) != 2:
+                log.warn(f"Cannot split commit line '{line}'")
+                continue
+
+            file_history.append(ShortCommitData(
+                message=line_parts[1],
+                sha=line_parts[0])
+            )
+
+        return file_history
