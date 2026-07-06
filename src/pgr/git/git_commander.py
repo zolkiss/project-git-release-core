@@ -136,3 +136,17 @@ class GitCommander:
             parts = commit.split(COMMIT_SEPARATOR)
             return_list.append(GitHashAndMsg(hash=parts[0], message=parts[1]))
         return return_list
+
+    def get_file_history(self, path: str, reverse_order: bool):
+        if reverse_order:
+            reverse_option = "--reverse"
+        else:
+            reverse_option = ""
+
+        command = ["git", "log", f"origin/{self.config.default_branch}", reverse_option,
+                   f"--pretty=%H{COMMIT_SEPARATOR}%s", f"-- {path}"]
+        self.__log_command(command)
+        commits = self.__run_git_command(command,
+                                         f"Error while getting commits for {path} on {self.config.default_branch}")
+        if not commits.result:
+            exit(1)

@@ -26,7 +26,9 @@ class ReleaseEngine:
         self.__prepare_release_branch_locally()
 
         latest_release_commit = self.connector.get_latest_release()
+        potential_unreleased_versions = self.__find_unreleased_versions(latest_release_commit)
 
+        exit(1)
         commit_list = self.__find_commits_since_last_release(latest_release_commit)
         if len(commit_list) == 0:
             log.info("There is no commit since the latest release. Quitting...")
@@ -62,6 +64,9 @@ class ReleaseEngine:
 
         response = self.connector.create_release(latest_unreleased_version, change_log)
         log.info("Release is created with response:\n%s", response)
+
+    def __find_unreleased_versions(self, latest_release: GitRelease | None):
+        self.git.get_file_history(f"./{self.config.version_file}", True)
 
     def __get_latest_unreleased_version(self) -> GitRelease | None:
         closed_release_prs = self.connector.get_latest_release_prs("closed")
