@@ -1,11 +1,10 @@
 from datetime import datetime
 
 import pytest
-from pgr.common.resolver import ChangeType
-from pgr.conv_commit import ConvCommitDetails
 
 from pgr.classes import CommitDetails
-from pgr.common import resolver
+from pgr.classes.conv_commit import ConvCommitDetails, ChangeType
+from pgr.common.commit_resolver import __resolve_commit_message, group_conv_commit_details
 
 
 @pytest.mark.parametrize(
@@ -81,26 +80,26 @@ from pgr.common import resolver
     ]
 )
 def test_valid_cases_without_body(commit_details: CommitDetails, expected: str | None):
-    conv_commit_details = resolver.__resolve_commit_message(commit_details)
+    conv_commit_details = __resolve_commit_message(commit_details)
     assert conv_commit_details == expected
 
 
 def test_body_value_copied():
-    conv_commit_details = resolver.__resolve_commit_message(
+    conv_commit_details = __resolve_commit_message(
         CommitDetails("", "feat: valid", datetime(2025, 10, 10, 0, 0, 0), "body_value", []))
     assert conv_commit_details == ConvCommitDetails.valid_commit("feat", datetime(2025, 10, 10, 0, 0, 0), "valid",
                                                                  body="body_value")
 
 
 def test_footers_copied():
-    conv_commit_details = resolver.__resolve_commit_message(
+    conv_commit_details = __resolve_commit_message(
         CommitDetails("", "feat: valid", datetime(2025, 10, 10, 0, 0, 0), None, ["Footer01", "Footer02"]))
     assert conv_commit_details == ConvCommitDetails.valid_commit("feat", datetime(2025, 10, 10, 0, 0, 0), "valid",
                                                                  footers=["Footer01", "Footer02"])
 
 
 def test_footer_overrides_breaking_change():
-    conv_commit_details = resolver.__resolve_commit_message(
+    conv_commit_details = __resolve_commit_message(
         CommitDetails("", "feat: valid", datetime(2025, 10, 10, 0, 0, 0), None,
                       ["BREAKING CHANGE: Footer01", "Footer02"]))
     assert conv_commit_details == ConvCommitDetails.valid_commit("feat", datetime(2025, 10, 10, 0, 0, 0), "valid",
@@ -109,7 +108,7 @@ def test_footer_overrides_breaking_change():
 
 
 def test_2nd_footer_overrides_breaking_change():
-    conv_commit_details = resolver.__resolve_commit_message(
+    conv_commit_details = __resolve_commit_message(
         CommitDetails("", "feat: valid", datetime(2025, 10, 10, 0, 0, 0), None,
                       ["Footer01", "BREAKING CHANGE: Footer02"]))
     assert conv_commit_details == ConvCommitDetails.valid_commit("feat", datetime(2025, 10, 10, 0, 0, 0), "valid",
@@ -126,13 +125,13 @@ def test_2nd_footer_overrides_breaking_change():
         pytest.param("feat:", id="No description"),
     ])
 def test_invalid_cases(commit_title: str):
-    conv_commit_details = resolver.__resolve_commit_message(
+    conv_commit_details = __resolve_commit_message(
         CommitDetails("", commit_title, datetime(2025, 10, 10, 0, 0, 0), None, []))
     assert conv_commit_details == ConvCommitDetails.invalid_commit(datetime(2025, 10, 10, 0, 0, 0), commit_title)
 
 
 def test_grouping_features_only_no_breaking_change():
-    grouped_conv_commits = resolver.group_conv_commit_details([
+    grouped_conv_commits = group_conv_commit_details([
         ConvCommitDetails.valid_commit("feat", datetime(2025, 10, 10, 0, 0, 0), "Very Description 01"),
         ConvCommitDetails.valid_commit("feat", datetime(2025, 10, 10, 0, 0, 0), "Very Description 02"),
         ConvCommitDetails.valid_commit("feat", datetime(2025, 10, 10, 0, 0, 0), "Very Description 03"),
@@ -148,7 +147,7 @@ def test_grouping_features_only_no_breaking_change():
 
 
 def test_grouping_fixes_only_no_breaking_change():
-    grouped_conv_commits = resolver.group_conv_commit_details([
+    grouped_conv_commits = group_conv_commit_details([
         ConvCommitDetails.valid_commit("fix", datetime(2025, 10, 10, 0, 0, 0), "Very Description 01"),
         ConvCommitDetails.valid_commit("fix", datetime(2025, 10, 10, 0, 0, 0), "Very Description 02"),
         ConvCommitDetails.valid_commit("fix", datetime(2025, 10, 10, 0, 0, 0), "Very Description 03"),
@@ -164,7 +163,7 @@ def test_grouping_fixes_only_no_breaking_change():
 
 
 def test_grouping_mixed_other_changes_only_no_breaking_change():
-    grouped_conv_commits = resolver.group_conv_commit_details([
+    grouped_conv_commits = group_conv_commit_details([
         ConvCommitDetails.valid_commit("chore", datetime(2025, 10, 10, 0, 0, 0), "Very Description 01"),
         ConvCommitDetails.valid_commit("test", datetime(2025, 10, 10, 0, 0, 0), "Very Description 02"),
         ConvCommitDetails.valid_commit("docs", datetime(2025, 10, 10, 0, 0, 0), "Very Description 03"),
@@ -180,7 +179,7 @@ def test_grouping_mixed_other_changes_only_no_breaking_change():
 
 
 def test_grouping_mixed_other_changes_only_with_breaking_change():
-    grouped_conv_commits = resolver.group_conv_commit_details([
+    grouped_conv_commits = group_conv_commit_details([
         ConvCommitDetails.valid_commit("chore", datetime(2025, 10, 10, 0, 0, 0), "Very Description 01",
                                        breaking_change=True),
         ConvCommitDetails.valid_commit("test", datetime(2025, 10, 10, 0, 0, 0), "Very Description 02")
@@ -194,7 +193,7 @@ def test_grouping_mixed_other_changes_only_with_breaking_change():
 
 
 def test_grouping_mixed_everything_no_breaking_change():
-    grouped_conv_commits = resolver.group_conv_commit_details([
+    grouped_conv_commits = group_conv_commit_details([
         ConvCommitDetails.valid_commit("chore", datetime(2025, 10, 10, 0, 0, 0), "Very Description 01"),
         ConvCommitDetails.valid_commit("test", datetime(2025, 10, 10, 0, 0, 0), "Very Description 02"),
         ConvCommitDetails.valid_commit("docs", datetime(2025, 10, 10, 0, 0, 0), "Very Description 03"),
@@ -212,7 +211,7 @@ def test_grouping_mixed_everything_no_breaking_change():
 
 
 def test_grouping_mixed_everything_with_breaking_change():
-    grouped_conv_commits = resolver.group_conv_commit_details([
+    grouped_conv_commits = group_conv_commit_details([
         ConvCommitDetails.valid_commit("chore", datetime(2025, 10, 10, 0, 0, 0), "Very Description 01"),
         ConvCommitDetails.valid_commit("test", datetime(2025, 10, 10, 0, 0, 0), "Very Description 02"),
         ConvCommitDetails.valid_commit("docs", datetime(2025, 10, 10, 0, 0, 0), "Very Description 03"),
