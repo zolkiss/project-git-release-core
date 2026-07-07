@@ -82,14 +82,14 @@ the release or update methods.
 
 As input parameters, it accepts:
 
-- [ReleaseConfig](src/pgr/config/release_config.py) instance
-- [Connector](src/pgr/connector.py#L18)
+- [ReleaseConfig](src/pgr/core/release_config.py) instance
+- [Connector](src/pgr/core/connector.py#L18)
 
 #### Sample
 
 ```python
 from pgr import ReleaseEngine
-from pgr.config.release_config import ReleaseConfig
+from pgr.core.release_config import ReleaseConfig
 from pgr.registry import get_connector
 
 token = "VERY_SECRET_TOKEN_VALUE"

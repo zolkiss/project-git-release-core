@@ -1,12 +1,25 @@
 import logging
 
-from pgr.logger_setup import create_logger, create_console_handler
+
+def create_logger(name: str,
+                  level: int = logging.INFO) -> logging.Logger:
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    return logger
+
+
+def create_console_handler(level: int = logging.INFO,
+                           log_format: str = '%(asctime)s - %(levelname)s: %(message)s') -> logging.StreamHandler:
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(level)
+    console_handler.setFormatter(logging.Formatter(log_format))
+    return console_handler
+
 
 log = create_logger(name=__name__, level=logging.DEBUG)
 
 log.addHandler(create_console_handler(level=logging.DEBUG))
 
-from pgr.connector import Connector
-from pgr.core import ReleaseEngine
+from pgr.core import Connector, ReleaseEngine
 
-__all__ = ["Connector", "ReleaseEngine", "create_logger", "create_console_handler", "log"]
+__all__ = ["Connector", "ReleaseEngine", "log", "create_logger", "create_console_handler"]

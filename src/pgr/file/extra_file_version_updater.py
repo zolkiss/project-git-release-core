@@ -8,9 +8,10 @@ from tempfile import TemporaryDirectory
 from jsonpath_ng import parse
 
 from pgr import log
-from pgr.config import ReleaseConfig
-from pgr.interfaces import NewVersion
-from pgr.semver_util import build_version_regex, VersionParts
+from pgr.classes import NewVersion
+from pgr.classes.version_parts import VersionParts
+from pgr.common import build_version_regex
+from pgr.core.release_config import ReleaseConfig
 
 
 class ExtraFileVersionUpdater:
@@ -27,7 +28,7 @@ class ExtraFileVersionUpdater:
         self.extra_file_config = extra_file_config
         self.temp_dir = temp_dir
 
-    def update_files(self, current_version: str | None, new_version: NewVersion, text_append_missing: bool):
+    def update_files(self, new_version: NewVersion, text_append_missing: bool):
         if self.__has_key("json", self.extra_file_config):
             self.__update_json_files(self.extra_file_config["json"], new_version)
         if self.__has_key("text", self.extra_file_config):
