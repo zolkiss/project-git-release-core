@@ -8,8 +8,8 @@ import typer
 from typer._click.core import ParameterSource
 
 from pgr import log, ReleaseEngine
-from pgr.config import ReleaseConfig
-from pgr.helper import runner_config
+from pgr.classes.runner_helper import runner_config
+from pgr.core import ReleaseConfig
 
 app = typer.Typer()
 

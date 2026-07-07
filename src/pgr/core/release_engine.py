@@ -2,17 +2,18 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from pgr import log, Connector
+from pgr import log
 from pgr.change_log import generate_change_chapters, generate_release_log
-from pgr.config.release_config import ReleaseConfig
-from pgr.conv_commit import resolver
-from pgr.conv_commit.resolver import GroupedConvCommits, ChangeType
-from pgr.file_handler.changelog_generator import ChangelogGenerator
-from pgr.file_handler.extra_file_version_updater import ExtraFileVersionUpdater
-from pgr.file_handler.version_file_generator import generate_version_file
+from pgr.classes import CommitDetails, GitRelease, NewVersion, GitReleasePR
+from pgr.classes.conv_commit import GroupedConvCommits, ChangeType
+from pgr.classes.version_parts import VersionParts
+from pgr.common import resolve_commit_messages, group_conv_commit_details, build_version_regex
+from pgr.common.changelog_generator import ChangelogGenerator
+from pgr.core import Connector
+from pgr.core.release_config import ReleaseConfig
+from pgr.file.extra_file_version_updater import ExtraFileVersionUpdater
+from pgr.file.version_file_generator import generate_version_file
 from pgr.git import GitCommander
-from pgr.interfaces import CommitDetails, GitRelease, NewVersion, GitReleasePR
-from pgr.semver_util import build_version_regex, VersionParts
 
 
 class ReleaseEngine:
@@ -37,7 +38,7 @@ class ReleaseEngine:
             log.info("There is no commit since the latest release. Quitting...")
             exit(0)
 
-        grouped_commits = resolver.group_conv_commit_details(resolver.resolve_commit_messages(commit_list))
+        grouped_commits = group_conv_commit_details(resolve_commit_messages(commit_list))
         next_version = self.__calculate_next_version(grouped_commits, actual_commit)
         self.__update_files(grouped_commits, actual_commit, next_version)
         self.__force_push_changes(next_version)
@@ -68,8 +69,7 @@ class ReleaseEngine:
                     exit(0)
                 commits_without_release = [commit for commit in commit_list if
                                            commit.hash != unreleased_version.commit_sha]
-                grouped_commits = resolver.group_conv_commit_details(
-                    resolver.resolve_commit_messages(commits_without_release))
+                grouped_commits = group_conv_commit_details(resolve_commit_messages(commits_without_release))
                 change_log = generate_release_log(grouped_commits, previous_release, unreleased_version)
                 log.info("Generated changelog for release:\n%s", change_log)
 
@@ -158,7 +158,6 @@ class ReleaseEngine:
         config_from_repo = self.__open_config_file()
         if "extra_files" in config_from_repo.keys() and config_from_repo["extra_files"] is not None:
             ExtraFileVersionUpdater(self.config, config_from_repo["extra_files"], self.temp_dir).update_files(
-                current_version,
                 next_version,
                 self.config.version_config_text_append_missing)
 

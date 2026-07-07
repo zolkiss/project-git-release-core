@@ -1,14 +1,4 @@
-from pgr.classes.data_classes import RunnerHelperData, GitReleasePR, GitRelease, ShortCommitData, GitReleaseResponse, \
-    CommitDetails, GitHashAndMsg, GitCmdResult, NewVersion
+from pgr.classes import default as _default
+from pgr.classes.default import *
 
-__all__ = [
-    "RunnerHelperData",
-    "GitReleasePR",
-    "GitRelease",
-    "ShortCommitData",
-    "GitReleaseResponse",
-    "CommitDetails",
-    "NewVersion",
-    "GitCmdResult",
-    "GitHashAndMsg"
-]
+__all__ = [name for name in dir(_default) if not name.startswith("_")]

@@ -1,15 +1,5 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import TypeVar, Generic
-
-T = TypeVar('T')
-
-
-@dataclass(frozen=True)
-class RunnerHelperData(Generic[T]):
-    env_name: str
-    help_text: str
-    default: T | None = None
 
 
 @dataclass(frozen=True)
