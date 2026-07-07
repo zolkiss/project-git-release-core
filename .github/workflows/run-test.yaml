@@ -1,0 +1,32 @@
+name: Run Test
+on:
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: ${{ !startsWith(github.head_ref, 'release-please--branches--master')}}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout project sources
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: Installing pip dependencies
+        run: pip install pytest build
+
+      - name: Running tests
+        run: pytest .
+
+      - name: Building
+        run: python -m build
