@@ -1,7 +1,7 @@
 from abc import abstractmethod, ABC
 
+from pgr.classes.data_classes import GitRelease, GitReleaseResponse, GitReleasePR, GitHashAndMsg, CommitDetails
 from pgr.config import ReleaseConfig
-from pgr.interfaces.interfaces import GitRelease, GitReleaseResponse, GitReleasePR, GitHashAndMsg, CommitDetails
 from pgr.semver_util import build_version_regex
 
 

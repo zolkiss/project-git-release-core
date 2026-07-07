@@ -1,9 +1,10 @@
 import subprocess
 
-from pgr import log
-from pgr.config.release_config import ReleaseConfig
 from pgr.interfaces import GitCmdResult, GitHashAndMsg
-from pgr.interfaces.interfaces import ShortCommitData
+
+from pgr import log
+from pgr.classes.data_classes import ShortCommitData
+from pgr.config.release_config import ReleaseConfig
 
 COMMIT_SEPARATOR = "|"
 

@@ -1,14 +1,6 @@
 from dataclasses import dataclass, field
-from typing import Generic, TypeVar
 
-T = TypeVar('T')
-
-
-@dataclass(frozen=True)
-class RunnerHelperData(Generic[T]):
-    env_name: str
-    help_text: str
-    default: T | None = None
+from pgr.classes.data_classes import RunnerHelperData
 
 
 @dataclass(frozen=True)
