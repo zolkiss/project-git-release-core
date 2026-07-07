@@ -13,5 +13,5 @@ dependencies = [
 where = ["src"]
 
 [tool.pytest.ini_options]
-testpaths = ["test/pgr"]
+testpaths = ["test"]
 pythonpath = ["src"]
