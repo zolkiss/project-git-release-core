@@ -1,0 +1,64 @@
+name: Publish on PyPi
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target PyPi'
+        required: true
+        default: 'testpypi'
+        type: choice
+        options:
+          - testpypi
+          - pypi
+
+jobs:
+  build:
+    name: Building distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Installing dependencies
+        run: pip install build pytest
+
+      - name: Running tests
+        run: pytest .
+
+      - name: Building project
+        run: python -m build
+
+      - name: Uploading artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: Publishing to ${{ github.event.inputs.target }}
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.target }}
+    permissions:
+      id-token: write   # REQUIRED for trusted publishing
+    steps:
+      - name: Downloading artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publishing to PyPI
+        if: ${{ github.event.inputs.target == 'pypi' }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Publishing to TestPyPI
+        if: ${{ github.event.inputs.target == 'testpypi' }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
