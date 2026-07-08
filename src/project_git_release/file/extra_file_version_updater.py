@@ -7,11 +7,11 @@ from tempfile import TemporaryDirectory
 
 from jsonpath_ng import parse
 
-from pgr import log
-from pgr.classes import NewVersion
-from pgr.classes.version_parts import VersionParts
-from pgr.common import build_version_regex
-from pgr.core.release_config import ReleaseConfig
+from project_git_release import log
+from project_git_release.classes import NewVersion
+from project_git_release.classes.version_parts import VersionParts
+from project_git_release.common import build_version_regex
+from project_git_release.core.release_config import ReleaseConfig
 
 
 class ExtraFileVersionUpdater:

@@ -1,6 +1,6 @@
 import re
 
-from pgr.classes.version_parts import VersionParts
+from project_git_release.classes.version_parts import VersionParts
 
 
 def build_version_regex(prefix: str = "") -> re.Pattern:

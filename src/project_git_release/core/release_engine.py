@@ -2,18 +2,18 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from pgr import log
-from pgr.change_log import generate_change_chapters, generate_release_log
-from pgr.classes import CommitDetails, GitRelease, NewVersion, GitReleasePR
-from pgr.classes.conv_commit import GroupedConvCommits, ChangeType
-from pgr.classes.version_parts import VersionParts
-from pgr.common import resolve_commit_messages, group_conv_commit_details, build_version_regex
-from pgr.common.changelog_generator import ChangelogGenerator
-from pgr.core import Connector
-from pgr.core.release_config import ReleaseConfig
-from pgr.file.extra_file_version_updater import ExtraFileVersionUpdater
-from pgr.file.version_file_generator import generate_version_file
-from pgr.git import GitCommander
+from project_git_release import log
+from project_git_release.change_log import generate_change_chapters, generate_release_log
+from project_git_release.classes import CommitDetails, GitRelease, NewVersion, GitReleasePR
+from project_git_release.classes.conv_commit import GroupedConvCommits, ChangeType
+from project_git_release.classes.version_parts import VersionParts
+from project_git_release.common import resolve_commit_messages, group_conv_commit_details, build_version_regex
+from project_git_release.common.changelog_generator import ChangelogGenerator
+from project_git_release.core import Connector
+from project_git_release.core.release_config import ReleaseConfig
+from project_git_release.file.extra_file_version_updater import ExtraFileVersionUpdater
+from project_git_release.file.version_file_generator import generate_version_file
+from project_git_release.git import GitCommander
 
 
 class ReleaseEngine:

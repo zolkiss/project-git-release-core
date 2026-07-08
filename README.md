@@ -71,26 +71,27 @@ While the runner supports the `--help` parameter, you can list the environment v
 ```shell
 pip install project-git-release-core project-git-release-connector-gitea
 
-python3 -m pgr --env-file-path "[VALID_PATH_TO_DOT_ENV]" update
+python3 -m project_git_release --env-file-path "[VALID_PATH_TO_DOT_ENV]" update
 ```
 
 ### Python code
 
 While currently the suggested mode is to use this from the command line, you can invoke the logic from code.
-For that, a [Release Engine](src/pgr/core.py#L17) Class was created, which needs to be instantiated; you then call
+For that, a [Release Engine](src/project_git_release/core.py#L17) Class was created, which needs to be instantiated; you
+then call
 the release or update methods.
 
 As input parameters, it accepts:
 
-- [ReleaseConfig](src/pgr/core/release_config.py) instance
-- [Connector](src/pgr/core/connector.py#L18)
+- [ReleaseConfig](src/project_git_release/core/release_config.py) instance
+- [Connector](src/project_git_release/core/connector.py#L18)
 
 #### Sample
 
 ```python
-from pgr import ReleaseEngine
-from pgr.core.release_config import ReleaseConfig
-from pgr.registry import get_connector
+from project_git_release import ReleaseEngine
+from project_git_release.core.release_config import ReleaseConfig
+from project_git_release.registry import get_connector
 
 token = "VERY_SECRET_TOKEN_VALUE"
 url = "https://github.com"

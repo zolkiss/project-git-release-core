@@ -2,9 +2,9 @@ from datetime import datetime
 
 import pytest
 
-from pgr.classes import CommitDetails
-from pgr.classes.conv_commit import ConvCommitDetails, ChangeType
-from pgr.common.commit_resolver import __resolve_commit_message, group_conv_commit_details
+from project_git_release.classes import CommitDetails
+from project_git_release.classes.conv_commit import ConvCommitDetails, ChangeType
+from project_git_release.common.commit_resolver import __resolve_commit_message, group_conv_commit_details
 
 
 @pytest.mark.parametrize(
