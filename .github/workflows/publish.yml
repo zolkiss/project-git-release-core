@@ -16,53 +16,53 @@ jobs:
     name: Building distribution
     runs-on: ubuntu-latest
     steps:
-      - name: Debugging
-        run: echo ${{ inputs.target }}
-#      - uses: actions/checkout@v4
-#
-#      - name: Set up Python 3.x
-#        uses: actions/setup-python@v5
-#        with:
-#          python-version: "3.x"
-#
-#      - name: Installing dependencies
-#        run: pip install build pytest
-#
-#      - name: Building project
-#        run: python -m build
-#
-#      - name: Running tests
-#        run: |
-#          pip install -r src/project_git_release_core.egg-info/requires.txt
-#          pytest .
-#
-#      - name: Uploading artifacts
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: dist
-#          path: dist/
-#
-#  publish:
-#    name: Publishing to ${{ inputs.target }}
-#    needs: build
-#    runs-on: ubuntu-latest
-#    environment:
-#      name: ${{ inputs.target }}
-#    permissions:
-#      id-token: write   # REQUIRED for trusted publishing
-#    steps:
-#      - name: Downloading artifacts
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: dist
-#          path: dist/
-#
-#      - name: Publishing to PyPI
-#        if: ${{ github.event.inputs.target == 'pypi' }}
-#        uses: pypa/gh-action-pypi-publish@release/v1
-#
-#      - name: Publishing to TestPyPI
-#        if: ${{ github.event.inputs.target == 'testpypi' }}
-#        uses: pypa/gh-action-pypi-publish@release/v1
-#        with:
-#          repository-url: https://test.pypi.org/legacy/
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Installing dependencies
+        run: pip install build pytest
+
+      - name: Building project
+        run: python -m build
+
+      - name: Running tests
+        run: |
+          pip install -r src/project_git_release_core.egg-info/requires.txt
+          pytest .
+
+      - name: Uploading artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: Publishing to ${{ inputs.target }}
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.target }}
+    permissions:
+      id-token: write   # REQUIRED for trusted publishing
+    steps:
+      - name: Debug
+        run: echo ${{ env.name }}
+      - name: Downloading artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publishing to PyPI
+        if: ${{ github.event.inputs.target == 'pypi' }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Publishing to TestPyPI
+        if: ${{ github.event.inputs.target == 'testpypi' }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
