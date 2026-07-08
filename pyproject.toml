@@ -1,6 +1,19 @@
 [project]
 name = "project-git-release-core"
-version = "0.0.1"
+version = "0.0.1-003"
+authors = [
+    { name = "zolkiss", email = "kisszoltan89@gmail.com" }
+]
+description = "project-git-release - core"
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Version Control :: Git"
+]
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = [
     "logging",
     "requests",
@@ -8,6 +21,15 @@ dependencies = [
     "typer",
     "dotenv"
 ]
+
+
+[project.urls]
+Homepage = "https://github.com/zolkiss/project-git-release-core"
+Issues = "https://github.com/zolkiss/project-git-release-core/issues"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]

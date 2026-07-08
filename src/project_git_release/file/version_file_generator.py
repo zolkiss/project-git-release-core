@@ -1,8 +1,8 @@
 from tempfile import TemporaryDirectory
 
-from pgr import log
-from pgr.classes import NewVersion
-from pgr.core.release_config import ReleaseConfig
+from project_git_release import log
+from project_git_release.classes import NewVersion
+from project_git_release.core.release_config import ReleaseConfig
 
 
 def generate_version_file(temp_dir: TemporaryDirectory, config: ReleaseConfig, new_version: NewVersion):
