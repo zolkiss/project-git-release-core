@@ -45,7 +45,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment:
-      name: ${{ inputs.target }}
+      name: testpypi
     permissions:
       id-token: write   # REQUIRED for trusted publishing
     steps:
