@@ -25,8 +25,8 @@ jobs:
       - name: Installing pip dependencies
         run: pip install pytest build
 
-      - name: Running tests
-        run: pytest .
-
       - name: Building
         run: python -m build
+
+      - name: Running tests
+        run: pytest .
