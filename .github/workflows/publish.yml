@@ -49,8 +49,6 @@ jobs:
     permissions:
       id-token: write   # REQUIRED for trusted publishing
     steps:
-      - name: Debug
-        run: echo ${{ env.name }}
       - name: Downloading artifacts
         uses: actions/download-artifact@v4
         with:
