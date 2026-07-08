@@ -26,11 +26,13 @@ jobs:
       - name: Installing dependencies
         run: pip install build pytest
 
-      - name: Running tests
-        run: pytest .
-
       - name: Building project
         run: python -m build
+
+      - name: Running tests
+        run: |
+          pip install -r src/project_git_release_core.egg-info/requires.txt
+          pytest .
 
       - name: Uploading artifacts
         uses: actions/upload-artifact@v4
@@ -39,11 +41,11 @@ jobs:
           path: dist/
 
   publish:
-    name: Publishing to ${{ github.event.inputs.target }}
+    name: Publishing to ${{ inputs.target }}
     needs: build
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.event.inputs.target }}
+      name: ${{ inputs.target }}
     permissions:
       id-token: write   # REQUIRED for trusted publishing
     steps:
