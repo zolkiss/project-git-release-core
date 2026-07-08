@@ -124,7 +124,7 @@ def _resolve_git_token(ctx: typer.Context, config_from_envs: dict, git_env_token
 
 
 def _resolve_connector(ctx: typer.Context, name: str):
-    eps = entry_points(group="pgr.connectors")
+    eps = entry_points(group="project_git_release.connectors")
     if len(eps) == 0:
         raise ValueError("No connectors are available.")
 

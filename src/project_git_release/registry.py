@@ -4,7 +4,7 @@ from project_git_release import Connector
 
 
 def get_connector(name: str) -> type[Connector]:
-    eps = entry_points(group="pgr.connectors")
+    eps = entry_points(group="project_git_release.connectors")
     matches = [ep for ep in eps if ep.name == name]
     if not matches:
         raise ValueError(f"No connector named {name!r} registered")
