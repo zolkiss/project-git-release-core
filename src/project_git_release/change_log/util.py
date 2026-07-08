@@ -1,7 +1,7 @@
 import datetime
 
-from pgr.classes import GitRelease
-from pgr.classes.conv_commit import ConvCommitDetails, GroupedConvCommits
+from project_git_release.classes import GitRelease
+from project_git_release.classes.conv_commit import ConvCommitDetails, GroupedConvCommits
 
 
 def generate_change_chapters(chapter_title: str, changes: list[list[ConvCommitDetails]],

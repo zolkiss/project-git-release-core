@@ -20,6 +20,6 @@ log = create_logger(name=__name__, level=logging.DEBUG)
 
 log.addHandler(create_console_handler(level=logging.DEBUG))
 
-from pgr.core import Connector, ReleaseEngine
+from project_git_release.core import Connector, ReleaseEngine
 
 __all__ = ["Connector", "ReleaseEngine", "log", "create_logger", "create_console_handler"]

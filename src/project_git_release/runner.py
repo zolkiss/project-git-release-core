@@ -7,9 +7,9 @@ from typing import Annotated, cast, TypeVar
 import typer
 from typer._click.core import ParameterSource
 
-from pgr import log, ReleaseEngine
-from pgr.classes.runner_helper import runner_config
-from pgr.core import ReleaseConfig
+from project_git_release import log, ReleaseEngine
+from project_git_release.classes.runner_helper import runner_config
+from project_git_release.core import ReleaseConfig
 
 app = typer.Typer()
 

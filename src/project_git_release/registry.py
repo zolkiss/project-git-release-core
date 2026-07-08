@@ -1,6 +1,6 @@
 from importlib.metadata import entry_points
 
-from pgr import Connector
+from project_git_release import Connector
 
 
 def get_connector(name: str) -> type[Connector]:

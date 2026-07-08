@@ -1,8 +1,8 @@
 from abc import abstractmethod, ABC
 
-from pgr.classes import GitReleasePR, GitRelease, GitHashAndMsg, CommitDetails, GitReleaseResponse
-from pgr.common import build_version_regex
-from pgr.core.release_config import ReleaseConfig
+from project_git_release.classes import GitReleasePR, GitRelease, GitHashAndMsg, CommitDetails, GitReleaseResponse
+from project_git_release.common import build_version_regex
+from project_git_release.core.release_config import ReleaseConfig
 
 
 class Connector(ABC):

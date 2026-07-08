@@ -2,11 +2,11 @@ import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from pgr import log
-from pgr.change_log import generate_change_chapters
-from pgr.classes import NewVersion
-from pgr.classes.conv_commit import GroupedConvCommits
-from pgr.core.release_config import ReleaseConfig
+from project_git_release import log
+from project_git_release.change_log import generate_change_chapters
+from project_git_release.classes import NewVersion
+from project_git_release.classes.conv_commit import GroupedConvCommits
+from project_git_release.core.release_config import ReleaseConfig
 
 
 class ChangelogGenerator:
