@@ -22,6 +22,8 @@ dependencies = [
     "dotenv"
 ]
 
+[project.optional-dependencies]
+test = ["pytest", "pytest-cov", "pytest-mock"]
 
 [project.urls]
 Homepage = "https://github.com/zolkiss/project-git-release-core"
@@ -37,3 +39,4 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["test"]
 pythonpath = ["src"]
+addopts = "-v --cov=src --cov-report=html --cov-fail-under=80"
