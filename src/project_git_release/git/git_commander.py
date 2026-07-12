@@ -116,7 +116,7 @@ class GitCommander:
         return force_push.result
 
     def get_commits_since_latest_release(self, latest_release_commit: str | None, hash_until: str | None) -> list[
-        GitHashAndMsg]:
+                                                                                                                 GitHashAndMsg] | None:
         default_branch_ref = f"origin/{self.config.default_branch}"
         command = ["git", "log", default_branch_ref, "--reverse", f"--pretty=%H{COMMIT_SEPARATOR}%s"]
         if latest_release_commit is not None:
@@ -130,7 +130,7 @@ class GitCommander:
         self.__log_command(command)
         commits = self.__run_git_command(command, f"Error while getting commits for {default_branch_ref}")
         if not commits.result:
-            exit(1)
+            return None
 
         return_list = []
         for commit in commits.stdout.splitlines():

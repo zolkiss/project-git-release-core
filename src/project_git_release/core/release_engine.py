@@ -34,7 +34,10 @@ class ReleaseEngine:
             actual_commit = latest_unreleased_commit
 
         commit_list = self.__find_commits_since_last_release(actual_commit)
-        if len(commit_list) == 0:
+        if commit_list is None:
+            log.error("Error while getting commits since last release...")
+            exit(1)
+        elif len(commit_list) == 0:
             log.info("There is no commit since the latest release. Quitting...")
             exit(0)
 
@@ -64,7 +67,11 @@ class ReleaseEngine:
                     previous_release = reverse_unreleased_versions[idx - 1]
                 commit_list = self.__find_commits_since_last_release(previous_release,
                                                                      unreleased_version)
-                if len(commit_list) == 0:
+
+                if commit_list is None:
+                    log.error("Error while getting commits since last release...")
+                    exit(1)
+                elif len(commit_list) == 0:
                     log.info("There is no commit since the latest release. Quitting...")
                     exit(0)
                 commits_without_release = [commit for commit in commit_list if
@@ -174,7 +181,7 @@ class ReleaseEngine:
 
     def __find_commits_since_last_release(self, latest_release_commit: GitRelease | None,
                                           hash_until: GitRelease | None = None) -> \
-            list[CommitDetails]:
+            list[CommitDetails] | None:
         commit_sha = None
         if latest_release_commit is not None:
             commit_sha = latest_release_commit.commit_sha
@@ -184,6 +191,8 @@ class ReleaseEngine:
             hash_until_sha = hash_until.commit_sha
 
         hash_and_msg_list = self.git.get_commits_since_latest_release(commit_sha, hash_until_sha)
+        if hash_and_msg_list is None:
+            return None
 
         return [
             details
