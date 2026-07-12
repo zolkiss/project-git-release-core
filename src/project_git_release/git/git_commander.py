@@ -31,7 +31,7 @@ class GitCommander:
                 base_dir = self.temp_dir
             else:
                 base_dir = None
-            result = subprocess.run(command, cwd=self.temp_dir, check=True, capture_output=True, text=True)
+            result = subprocess.run(command, cwd=base_dir, check=True, capture_output=True, text=True)
             self.__log_git_stdout(result.stdout)
             return GitCmdResult(True, result.stdout, result.stderr, result.returncode)
         except subprocess.CalledProcessError as e:
@@ -64,13 +64,14 @@ class GitCommander:
     def update_release_branch(self) -> bool:
         command = ["git", "fetch", "origin", f"{self.config.release_branch}:{self.config.release_branch}"]
         self.__log_command(command)
-        if not self.__run_git_command(command, f"Error wile fetchin origin/{self.config.release_branch}"):
+        fetch_result = self.__run_git_command(command, f"Error wile fetching origin/{self.config.release_branch}")
+        if not fetch_result.result:
             return False
 
         command = ["git", "checkout", self.config.release_branch]
         self.__log_command(command)
         branch_checked_out = self.__run_git_command(command, "Error while checking out existing release branch")
-        if not branch_checked_out:
+        if not branch_checked_out.result:
             return False
 
         command = ["git", "reset", "--hard", f"origin/{self.config.default_branch}"]

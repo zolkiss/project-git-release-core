@@ -28,12 +28,10 @@ def test_clone_repository_cmd_line_error(subp_mock, commander, release_config, l
 def test_is_release_branch_exists(subp_mock, commander, release_config, log_info_spy):
     clone_result = commander.is_release_branch_exists()
     assert clone_result
-
     assert ["git", "ls-remote", "--exit-code", "origin", release_config.release_branch] == subp_mock.call_args.args[0]
 
 
 def test_create_release_branch(subp_mock, commander, release_config, log_info_spy):
     clone_result = commander.create_release_branch()
     assert clone_result
-
     assert ["git", "checkout", "-b", release_config.release_branch] == subp_mock.call_args.args[0]
