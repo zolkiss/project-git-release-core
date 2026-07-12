@@ -29,6 +29,11 @@ def log_info_spy(mocker) -> MockType:
 
 
 @pytest.fixture
+def log_warn_spy(mocker) -> MockType:
+    return mocker.spy(log, 'warning')
+
+
+@pytest.fixture
 def log_debug_spy(mocker) -> MockType:
     return mocker.spy(log, 'debug')
 
