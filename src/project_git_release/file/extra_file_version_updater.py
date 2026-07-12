@@ -160,9 +160,8 @@ class ExtraFileVersionUpdater:
             if text_append_missing:
                 marker_pattern = self.__build_markter_patter(self.config.version_config_marker)
                 marker = marker_pattern.search(line)
-                if marker is None:
-                    log.error("Cannot identify inline marker in line: %s. Skipping", line)
-                updated_line = line.replace(marker.group(0), f"{new_version.get_full_version()} {marker.group(0)}")
+                if marker is not None:
+                    updated_line = line.replace(marker.group(0), f"{new_version.get_full_version()} {marker.group(0)}")
             else:
                 log.warning("Cannot find version to update. Appending to end of the line...")
         else:
