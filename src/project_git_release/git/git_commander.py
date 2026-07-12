@@ -155,7 +155,7 @@ class GitCommander:
         for line in commits.stdout.splitlines():
             line_parts = line.split(COMMIT_SEPARATOR)
             if len(line_parts) != 2:
-                log.warn(f"Cannot split commit line '{line}'")
+                log.warning(f"Cannot split commit line '{line}'")
                 continue
 
             file_history.append(ShortCommitData(

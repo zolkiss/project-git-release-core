@@ -117,7 +117,7 @@ class ReleaseEngine:
                 version_pattern = build_version_regex(self.config.release_version_prefix)
                 match = version_pattern.search(pr.title)
                 if match is None:
-                    log.warn("The merged PR (%s) does not have version information", pr.title)
+                    log.warning("The merged PR (%s) does not have version information", pr.title)
                     continue
                 else:
                     version = match.group(VersionParts.FULL_VERSION)
@@ -125,7 +125,7 @@ class ReleaseEngine:
                     break
 
         if latest_merged_release_pr is None or version is None:
-            log.warn("Couldn't find a not merged closed release PR in the PR history.")
+            log.warning("Couldn't find a not merged closed release PR in the PR history.")
             return None
 
         tag_details = self.connector.get_release_by_tag(version)
