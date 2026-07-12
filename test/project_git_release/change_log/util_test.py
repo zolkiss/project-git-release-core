@@ -23,7 +23,7 @@ def test_generate_release_log_multiple_valid_commits(release_config):
                                        GitRelease("0.0.1", "Release 0.0.1", "very_sha_prev"),
                                        GitRelease("0.1.0", "Release 0.1.0", "very_sha_next"))
 
-    assert release_log == f"## [0.1.0]({release_config.git_url()}/compare/0.0.1...0.1.0) (2026-07-12)\n### Features\n*  Very Title 01\n### Bugfix(es)\n*  **little_scope:** Very Title 03\n### Other changes\n* **chore(Very scope):** Very Title 02\n---\n"
+    assert release_log == f"## [0.1.0]({release_config.git_url()}/compare/0.0.1...0.1.0) (2026-07-12)\n### Features\n*  Very Title 01\n### Bugfix(es)\n* **little_scope:** Very Title 03\n### Other changes\n* **chore(Very scope):** Very Title 02\n---\n"
 
 
 def test_generate_release_log_invalid_commit(release_config):
