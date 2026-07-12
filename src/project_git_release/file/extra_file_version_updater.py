@@ -21,7 +21,7 @@ class ExtraFileVersionUpdater:
 
     @staticmethod
     def __str_key_not_defined(key: str, config: dict) -> bool:
-        return ExtraFileVersionUpdater.__has_key(key, config) and config[key].strip() == ""
+        return not (ExtraFileVersionUpdater.__has_key(key, config) and config[key].strip() != "")
 
     def __init__(self, config: ReleaseConfig, extra_file_config: dict, temp_dir: TemporaryDirectory):
         self.config = config
@@ -55,7 +55,7 @@ class ExtraFileVersionUpdater:
             json_path_exp = parse(version_path)
 
             updated_json_file = copy.deepcopy(json_file)
-            json_path_creation_allowed = self.__eval_create_if_not_exists(updated_json_file)
+            json_path_creation_allowed = self.__eval_create_if_not_exists(json_config)
             if json_path_creation_allowed:
                 json_path_exp.update_or_create(updated_json_file, new_version.get_full_version())
             else:
