@@ -31,7 +31,7 @@ class GitCommander:
                 base_dir = self.temp_dir
             else:
                 base_dir = None
-            result = subprocess.run(command, cwd=base_dir, check=True, capture_output=True, text=True)
+            result = subprocess.run(command, cwd=self.temp_dir, check=True, capture_output=True, text=True)
             self.__log_git_stdout(result.stdout)
             return GitCmdResult(True, result.stdout, result.stderr, result.returncode)
         except subprocess.CalledProcessError as e:

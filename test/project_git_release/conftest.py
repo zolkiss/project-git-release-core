@@ -1,5 +1,7 @@
 import pytest
+from pytest_mock import MockType
 
+from project_git_release import log
 from project_git_release.core import ReleaseConfig
 
 __TEST_TOKEN_VALUE = "VERY_TOKEN_VALUE"
@@ -19,3 +21,18 @@ def release_config():
         repo=__TEST_REPO_NAME,
         default_branch=__TEST_DEFAULT_BRANCH
     )
+
+
+@pytest.fixture
+def log_info_spy(mocker) -> MockType:
+    return mocker.spy(log, 'info')
+
+
+@pytest.fixture
+def log_debug_spy(mocker) -> MockType:
+    return mocker.spy(log, 'debug')
+
+
+@pytest.fixture
+def log_error_spy(mocker) -> MockType:
+    return mocker.spy(log, 'error')
