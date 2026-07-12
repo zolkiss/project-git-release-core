@@ -4,7 +4,8 @@ import pytest
 
 from project_git_release.classes import CommitDetails
 from project_git_release.classes.conv_commit import ConvCommitDetails, ChangeType
-from project_git_release.common.commit_resolver import __resolve_commit_message, group_conv_commit_details
+from project_git_release.common.commit_resolver import __resolve_commit_message, group_conv_commit_details, \
+    resolve_commit_messages
 
 
 @pytest.mark.parametrize(
@@ -19,8 +20,8 @@ from project_git_release.common.commit_resolver import __resolve_commit_message,
             CommitDetails.of("", "feat!: Valid commit no scope with breaking change", datetime(2025, 10, 10, 0, 0, 0)),
             ConvCommitDetails.valid_commit("feat", datetime(2025, 10, 10, 0, 0, 0),
                                            "Valid commit no scope with breaking change",
-                                                    breaking_change=True),
-                     id="Valid - no scope - breaking"),
+                                           breaking_change=True),
+            id="Valid - no scope - breaking"),
         pytest.param(
             CommitDetails.of("", "feat(): Valid commit with empty scope and without breaking change",
                              datetime(2025, 10, 10, 0, 0, 0)),
@@ -227,3 +228,36 @@ def test_grouping_mixed_everything_with_breaking_change():
     assert grouped_conv_commits.has_feature()
     assert grouped_conv_commits.has_fix()
     assert grouped_conv_commits.get_highest_change() == ChangeType.MAJOR
+
+
+def test_group_conv_commit_details():
+    grouped_conv_commits = group_conv_commit_details([
+        ConvCommitDetails.invalid_commit(datetime(2025, 10, 10, 0, 0, 0), "Very Description 01")
+    ])
+
+    assert not grouped_conv_commits.has_fix()
+    assert not grouped_conv_commits.has_feature()
+    assert not grouped_conv_commits.has_breaking_change()
+    assert not grouped_conv_commits.has_other_change()
+    assert grouped_conv_commits.get_highest_change() == ChangeType.NONE
+
+
+def test_resolve_commit_messages():
+    resolved_commit_message = resolve_commit_messages([
+        CommitDetails.of("Very_Unique_Hash_01", "feat: Very Title 01", datetime(2025, 10, 10, 0, 0, 0), None),
+        CommitDetails.of("Very_Unique_Hash_02", "chore(small_scope): Very Title 02", datetime(2025, 10, 10, 0, 0, 0),
+                         "Very Body")
+    ])
+
+    assert 2 == len(resolved_commit_message)
+    first_commit = resolved_commit_message[0]
+    assert first_commit.scope is None
+    assert first_commit.body is None
+    assert first_commit.type == "feat"
+    assert first_commit.valid
+
+    second_commit = resolved_commit_message[1]
+    assert second_commit.scope == "small_scope"
+    assert second_commit.body == "Very Body"
+    assert second_commit.type == "chore"
+    assert second_commit.valid
