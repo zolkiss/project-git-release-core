@@ -1,5 +1,6 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Any, Callable
 from unittest.mock import MagicMock, mock_open
 
 import pytest
@@ -32,6 +33,12 @@ def file_side_effect(read_data: str = ''):
     return {'callback': callback, 'm_read': m_read, 'm_write': m_write}
 
 
+def assert_valid_write_action(m_write: Callable[..., Any] | Any, message: str):
+    m_write.return_value.write.assert_called_once()
+    update_file_content = m_write.return_value.write.call_args[0][0]
+    assert message == update_file_content
+
+
 def test_update_files_no_extra_files(mocker, release_config, temp_dir):
     updater = ExtraFileVersionUpdater(release_config, extra_file_config={}, temp_dir=temp_dir)
     json_spy: MagicMock = mocker.spy(updater, "_ExtraFileVersionUpdater__update_json_files")
@@ -60,7 +67,7 @@ def test_update_files_extra_text_no_temp_dir_files(mocker, release_config, temp_
     text_spy.assert_called_once()
 
 
-def test_update_files_extra_text_file_exists_without_marker(mocker, release_config, temp_dir, log_info_spy):
+def test_update_files_extra_text_without_marker(mocker, release_config, temp_dir, log_info_spy):
     text_file_config = {'text': ['very_file.txt']}
     updater = ExtraFileVersionUpdater(release_config, extra_file_config=text_file_config, temp_dir=temp_dir)
 
@@ -82,7 +89,7 @@ def test_update_files_extra_text_file_exists_without_marker(mocker, release_conf
     log_info_spy.assert_any_call("Cannot find version maker in %s", text_file_config['text'][0])
 
 
-def test_update_files_extra_text_file_exists_with_line_marker(mocker, release_config, temp_dir, log_info_spy):
+def test_update_files_extra_text_with_line_marker(mocker, release_config, temp_dir, log_info_spy):
     text_file_config = {'text': ['very_file.txt']}
     updater = ExtraFileVersionUpdater(release_config, extra_file_config=text_file_config, temp_dir=temp_dir)
 
@@ -97,17 +104,16 @@ def test_update_files_extra_text_file_exists_with_line_marker(mocker, release_co
 
     updater.update_files(NewVersion("0.1.0", prefix=""), False)
 
-    m_write.return_value.write.assert_called_once()
-    update_file_content = m_write.return_value.write.call_args[0][0]
-    assert f"custom_property_file=yes\nversion:0.1.0 #{release_config.version_config_marker}" == update_file_content
+    assert_valid_write_action(m_write,
+                              f"custom_property_file=yes\nversion:0.1.0 #{release_config.version_config_marker}")
 
     m_read.return_value.readlines.assert_called_once()
 
     log_info_spy.assert_any_call("Updating version in %s", text_file_config['text'][0])
 
 
-def test_update_files_extra_text_file_exists_with_line_marker_but_no_valid_semver_version(mocker, release_config,
-                                                                                          temp_dir, log_info_spy):
+def test_update_files_extra_text_with_line_marker_but_no_valid_semver_version(mocker, release_config,
+                                                                              temp_dir, log_info_spy):
     text_file_config = {'text': ['very_file.txt']}
     updater = ExtraFileVersionUpdater(release_config, extra_file_config=text_file_config, temp_dir=temp_dir)
 
@@ -122,17 +128,40 @@ def test_update_files_extra_text_file_exists_with_line_marker_but_no_valid_semve
 
     updater.update_files(NewVersion("0.1.0", prefix=""), False)
 
-    m_write.return_value.write.assert_called_once()
-    update_file_content = m_write.return_value.write.call_args[0][0]
-    assert f"custom_property_file=yes\nversion:not-valid-semver #{release_config.version_config_marker}" == update_file_content
+    assert_valid_write_action(m_write,
+                              f"custom_property_file=yes\nversion:not-valid-semver #{release_config.version_config_marker}")
 
     m_read.return_value.readlines.assert_called_once()
 
     log_info_spy.assert_any_call("Updating version in %s", text_file_config['text'][0])
 
 
-def test_update_files_extra_text_file_exists_with_block_marker_no_change(mocker, release_config, temp_dir, log_info_spy,
-                                                                         log_warn_spy):
+def test_update_files_extra_text_with_line_marker_but_no_valid_semver_version_with_append(mocker, release_config,
+                                                                                          temp_dir, log_info_spy):
+    text_file_config = {'text': ['very_file.txt']}
+    updater = ExtraFileVersionUpdater(release_config, extra_file_config=text_file_config, temp_dir=temp_dir)
+
+    path_exists_mock = mocker.patch.object(Path, "exists")
+    path_exists_mock.return_value = True
+
+    callback_obj = file_side_effect(
+        read_data=f"custom_property_file=yes\nversion:not-valid-semver #{release_config.version_config_marker}")
+    m_write = callback_obj["m_write"]
+    m_read = callback_obj["m_read"]
+    mocker.patch("builtins.open", side_effect=callback_obj["callback"])
+
+    updater.update_files(NewVersion("0.1.0", prefix=""), True)
+
+    assert_valid_write_action(m_write,
+                              f"custom_property_file=yes\nversion:not-valid-semver 0.1.0 #{release_config.version_config_marker}")
+
+    m_read.return_value.readlines.assert_called_once()
+
+    log_info_spy.assert_any_call("Updating version in %s", text_file_config['text'][0])
+
+
+def test_update_files_extra_text_with_block_marker_no_change(mocker, release_config, temp_dir, log_info_spy,
+                                                             log_warn_spy):
     text_file_config = {'text': ['very_file.txt']}
     updater = ExtraFileVersionUpdater(release_config, extra_file_config=text_file_config, temp_dir=temp_dir)
 
@@ -147,9 +176,8 @@ def test_update_files_extra_text_file_exists_with_block_marker_no_change(mocker,
 
     updater.update_files(NewVersion("0.0.1", prefix=""), False)
 
-    m_write.return_value.write.assert_called_once()
-    update_file_content = m_write.return_value.write.call_args[0][0]
-    assert f"custom_property_file=yes\n{release_config.version_config_marker_block_start}\nversion:0.0.1\n#{release_config.version_config_marker_block_end}" == update_file_content
+    assert_valid_write_action(m_write,
+                              f"custom_property_file=yes\n{release_config.version_config_marker_block_start}\nversion:0.0.1\n#{release_config.version_config_marker_block_end}")
 
     m_read.return_value.readlines.assert_called_once()
 
@@ -157,7 +185,7 @@ def test_update_files_extra_text_file_exists_with_block_marker_no_change(mocker,
     log_warn_spy.assert_any_call("No update happened in the marked lines")
 
 
-def test_update_files_extra_text_file_exists_with_block_marker(mocker, release_config, temp_dir, log_info_spy):
+def test_update_files_extra_text_with_block_marker(mocker, release_config, temp_dir, log_info_spy):
     text_file_config = {'text': ['very_file.txt']}
     updater = ExtraFileVersionUpdater(release_config, extra_file_config=text_file_config, temp_dir=temp_dir)
 
@@ -172,17 +200,16 @@ def test_update_files_extra_text_file_exists_with_block_marker(mocker, release_c
 
     updater.update_files(NewVersion("0.1.0", prefix=""), False)
 
-    m_write.return_value.write.assert_called_once()
-    update_file_content = m_write.return_value.write.call_args[0][0]
-    assert f"custom_property_file=yes\n{release_config.version_config_marker_block_start}\nversion:0.1.0\n#{release_config.version_config_marker_block_end}" == update_file_content
+    assert_valid_write_action(m_write,
+                              f"custom_property_file=yes\n{release_config.version_config_marker_block_start}\nversion:0.1.0\n#{release_config.version_config_marker_block_end}")
 
     m_read.return_value.readlines.assert_called_once()
 
     log_info_spy.assert_any_call("Updating version in %s", text_file_config['text'][0])
 
 
-def test_update_files_extra_text_file_exists_with_block_marker_missing_ending(mocker, release_config, temp_dir,
-                                                                              log_info_spy, log_error_spy):
+def test_update_files_extra_text_with_block_marker_missing_ending(mocker, release_config, temp_dir,
+                                                                  log_info_spy, log_error_spy):
     text_file_config = {'text': ['very_file.txt']}
     updater = ExtraFileVersionUpdater(release_config, extra_file_config=text_file_config, temp_dir=temp_dir)
 
@@ -203,3 +230,50 @@ def test_update_files_extra_text_file_exists_with_block_marker_missing_ending(mo
 
     log_info_spy.assert_any_call("Updating version in %s", text_file_config['text'][0])
     log_error_spy.assert_any_call("Cannot find ending marker for starting marker at line %s", 2)
+
+
+def test_update_files_extra_text_with_block_marker_with_no_semver(mocker, release_config, temp_dir, log_info_spy):
+    text_file_config = {'text': ['very_file.txt']}
+    updater = ExtraFileVersionUpdater(release_config, extra_file_config=text_file_config, temp_dir=temp_dir)
+
+    path_exists_mock = mocker.patch.object(Path, "exists")
+    path_exists_mock.return_value = True
+
+    callback_obj = file_side_effect(
+        read_data=f"custom_property_file=yes\n{release_config.version_config_marker_block_start}\nversion:\n#{release_config.version_config_marker_block_end}")
+    m_write = callback_obj["m_write"]
+    m_read = callback_obj["m_read"]
+    mocker.patch("builtins.open", side_effect=callback_obj["callback"])
+
+    updater.update_files(NewVersion("0.1.0", prefix=""), False)
+
+    assert_valid_write_action(m_write,
+                              f"custom_property_file=yes\n{release_config.version_config_marker_block_start}\nversion:\n#{release_config.version_config_marker_block_end}")
+
+    m_read.return_value.readlines.assert_called_once()
+
+    log_info_spy.assert_any_call("Updating version in %s", text_file_config['text'][0])
+
+
+def test_update_files_extra_text_with_block_marker_with_no_semver_but_with_append(mocker, release_config, temp_dir,
+                                                                                  log_info_spy):
+    text_file_config = {'text': ['very_file.txt']}
+    updater = ExtraFileVersionUpdater(release_config, extra_file_config=text_file_config, temp_dir=temp_dir)
+
+    path_exists_mock = mocker.patch.object(Path, "exists")
+    path_exists_mock.return_value = True
+
+    callback_obj = file_side_effect(
+        read_data=f"custom_property_file=yes\n{release_config.version_config_marker_block_start}\nversion:\n#{release_config.version_config_marker_block_end}")
+    m_write = callback_obj["m_write"]
+    m_read = callback_obj["m_read"]
+    mocker.patch("builtins.open", side_effect=callback_obj["callback"])
+
+    updater.update_files(NewVersion("0.1.0", prefix=""), True)
+
+    assert_valid_write_action(m_write,
+                              f"custom_property_file=yes\n{release_config.version_config_marker_block_start}\nversion: 0.1.0\n#{release_config.version_config_marker_block_end}")
+
+    m_read.return_value.readlines.assert_called_once()
+
+    log_info_spy.assert_any_call("Updating version in %s", text_file_config['text'][0])
