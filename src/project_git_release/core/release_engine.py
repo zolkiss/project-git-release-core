@@ -70,7 +70,7 @@ class ReleaseEngine:
                 commits_without_release = [commit for commit in commit_list if
                                            commit.hash != unreleased_version.commit_sha]
                 grouped_commits = group_conv_commit_details(resolve_commit_messages(commits_without_release))
-                change_log = generate_release_log(grouped_commits, previous_release, unreleased_version)
+                change_log = generate_release_log(self.config, grouped_commits, previous_release, unreleased_version)
                 log.info("Generated changelog for release:\n%s", change_log)
 
                 response = self.connector.create_release(unreleased_version, change_log)
@@ -264,7 +264,8 @@ class ReleaseEngine:
             chapters = generate_change_chapters("Bugfix(es) 🩹", [grouped_commits.get_fixes()])
             content.append("")
             content.extend(chapters)
-        if grouped_commits.has_other_change():
+        if (grouped_commits.has_other_change()
+                or len(grouped_commits.invalid_commits) > 0):
             chapters = generate_change_chapters("Other changes ❓",
                                                 [grouped_commits.get_other_changes(), grouped_commits.invalid_commits],
                                                 True)

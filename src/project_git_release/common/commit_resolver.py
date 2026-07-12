@@ -3,7 +3,7 @@ import re
 from project_git_release.classes import CommitDetails
 from project_git_release.classes.conv_commit import ResolvedCommitTitle, CONV_COMMIT_TYPE_PATTERN, CC_GROUP_TYPE, \
     CC_GROUP_SCOPE, \
-    CC_GROUP_DESCRIPTION, CC_GROUP_BREAKING_CHANGE, ConvCommitDetails, GroupedConvCommits
+    CC_GROUP_DESCRIPTION, CC_GROUP_BREAKING_CHANGE, ConvCommitDetails, GroupedConvCommits, CONV_COMMIT_TYPES
 
 
 def __resolve_commit_title(title: str) -> ResolvedCommitTitle | None:
@@ -46,7 +46,9 @@ def resolve_commit_messages(commit_list: list[CommitDetails]) -> list[ConvCommit
 def group_conv_commit_details(conv_commits: list[ConvCommitDetails]) -> GroupedConvCommits:
     grouped_values = GroupedConvCommits()
     for conv_commit in conv_commits:
-        if not conv_commit.valid or conv_commit.type is None:
+        if (not conv_commit.valid
+                or conv_commit.type is None
+                or conv_commit.type not in CONV_COMMIT_TYPES):
             grouped_values.invalid_commits.append(conv_commit)
             continue
 

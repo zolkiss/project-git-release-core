@@ -2,6 +2,7 @@ import datetime
 
 from project_git_release.classes import GitRelease
 from project_git_release.classes.conv_commit import ConvCommitDetails, GroupedConvCommits
+from project_git_release.core import ReleaseConfig
 
 
 def generate_change_chapters(chapter_title: str, changes: list[list[ConvCommitDetails]],
@@ -31,20 +32,24 @@ def _generate_change_records(changes: list[ConvCommitDetails], include_type: boo
             elif change.scope is not None:
                 scope = f"**{change.scope}:**"
             else:
-                scope = ""
+                if include_type:
+                    scope = f"**{change.type}:**"
+                else:
+                    scope = ""
             change_records.append(f"* {scope} {change.description}")
         else:
             change_records.append(f"* {change.description}")
     return change_records
 
 
-def generate_release_log(grouped_commits: GroupedConvCommits, previous_version: GitRelease | None,
+def generate_release_log(config: ReleaseConfig, grouped_commits: GroupedConvCommits,
+                         previous_version: GitRelease | None,
                          new_version: GitRelease) -> str:
     compare_text = f"{new_version.tag_name}"
     if previous_version is not None:
         compare_text = f"{previous_version.tag_name}...{new_version.tag_name}"
 
-    new_changes = f"## [{new_version.tag_name}](https://gitea.raspi.zolkiss.home/KiZoCo/testing-repository-with-releases/compare/{compare_text}) ({datetime.datetime.now().strftime("%Y-%m-%d")})\n"
+    new_changes = f"## [{new_version.tag_name}]({config.git_url()}/compare/{compare_text}) ({datetime.datetime.now().strftime("%Y-%m-%d")})\n"
     if grouped_commits.has_breaking_change():
         new_changes += "\n".join(generate_change_chapters("Breaking changes",
                                                           [grouped_commits.braking_changes]))
@@ -54,7 +59,8 @@ def generate_release_log(grouped_commits: GroupedConvCommits, previous_version: 
     if grouped_commits.has_fix():
         new_changes += "\n".join(generate_change_chapters("Bugfix(es)",
                                                           [grouped_commits.get_fixes()]))
-    if grouped_commits.has_other_change():
+    if (grouped_commits.has_other_change()
+            or len(grouped_commits.invalid_commits) > 0):
         new_changes += "\n".join(generate_change_chapters("Other changes",
                                                           [grouped_commits.get_other_changes(),
                                                            grouped_commits.invalid_commits], True))
