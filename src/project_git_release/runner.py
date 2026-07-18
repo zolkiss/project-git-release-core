@@ -54,7 +54,7 @@ def _list_env_vars(value: bool) -> None:
 
 def _read_env_and_env_file(env_file_path: Path) -> dict:
     if env_file_path != _DEFAULT_ENV_FILE_PATH and (not env_file_path.exists() or not env_file_path.is_file()):
-        log.error("Cannot find environment file on path %s", env_file_path)
+        log.error("Cannot find environment file on path %s", env_file_path.name)
         exit(1)
     env_variables = dict()
     for key in os.environ.keys():
