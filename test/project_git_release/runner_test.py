@@ -98,7 +98,7 @@ def test_runner_parameters_file_token_exists_but_empty(release_config, mocker):
     assert result.stderr.find("Invalid value for --git-token-file: The token file token.txt is empty") != -1
 
 
-def test_runner_parameters_file_token_exists_and_valid(release_config, mocker, log_error_spy):
+def test_runner_parameters_file_token_exists_and_valid(release_config, mocker, log_error_spy, dummy_connector):
     create_valid_token_setup(mocker)
 
     result = runner.invoke(app, [f"--git-repo-url={release_config.url}", f"--git-repo-owner={release_config.owner}",
