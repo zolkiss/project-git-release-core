@@ -33,7 +33,6 @@ def change_gen(release_config, temp_dir):
 
 
 def cl_file_sideeffect(read_data: str = "") -> FileSideEffect:
-    # Use like this: mocker.patch("builtins.open", side_effect=file_side_effect(read_data=json.dumps({'version': '0.0.1'})))
     m_read = mock_open(read_data=read_data)
     m_write = mock_open()
 
@@ -68,7 +67,7 @@ def test_create_new_changelog(mocker, change_gen, release_config, log_info_spy):
         ConvCommitDetails.valid_commit("test", datetime.now(), other_desc, scope=other_scope)
     ]}, invalid_commits=[
         ConvCommitDetails.invalid_commit(datetime.now(), invalid_commit_desc)
-    ], braking_changes=[
+    ], breaking_changes=[
         ConvCommitDetails.valid_commit("feat", datetime.now(), breaking_change_desc)
     ])
 

@@ -52,7 +52,7 @@ def generate_release_log(config: ReleaseConfig, grouped_commits: GroupedConvComm
     new_changes = f"## [{new_version.tag_name}]({config.git_url()}/compare/{compare_text}) ({datetime.datetime.now().strftime("%Y-%m-%d")})\n"
     if grouped_commits.has_breaking_change():
         new_changes += "\n".join(generate_change_chapters("Breaking changes",
-                                                          [grouped_commits.braking_changes]))
+                                                          [grouped_commits.breaking_changes]))
     if grouped_commits.has_feature():
         new_changes += "\n".join(generate_change_chapters("Features",
                                                           [grouped_commits.get_features()]))

@@ -55,7 +55,7 @@ def group_conv_commit_details(conv_commits: list[ConvCommitDetails]) -> GroupedC
         type_ = conv_commit.type
 
         if conv_commit.breaking_change:
-            grouped_values.braking_changes.append(conv_commit)
+            grouped_values.breaking_changes.append(conv_commit)
         elif type_ not in grouped_values.valid_commits.keys():
             grouped_values.valid_commits[type_] = [conv_commit]
         else:

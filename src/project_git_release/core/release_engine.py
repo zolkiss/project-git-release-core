@@ -262,7 +262,7 @@ class ReleaseEngine:
     def __generate_commit_text(next_version: NewVersion, grouped_commits: GroupedConvCommits) -> str:
         content = [f"# ⚙️Preparing release {next_version.get_full_version()}🔨"]
         if grouped_commits.has_breaking_change():
-            chapters = generate_change_chapters("Breaking changes ⛓️‍💥", [grouped_commits.braking_changes])
+            chapters = generate_change_chapters("Breaking changes ⛓️‍💥", [grouped_commits.breaking_changes])
             content.append("")
             content.extend(chapters)
         if grouped_commits.has_feature():

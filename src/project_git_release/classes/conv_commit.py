@@ -29,7 +29,7 @@ class ChangeType(IntEnum):
 class GroupedConvCommits:
     valid_commits: dict[str, list[ConvCommitDetails]] = field(default_factory=dict)
     invalid_commits: list[ConvCommitDetails] = field(default_factory=list)
-    braking_changes: list[ConvCommitDetails] = field(default_factory=list)
+    breaking_changes: list[ConvCommitDetails] = field(default_factory=list)
 
     def has_feature(self) -> bool:
         return "feat" in self.valid_commits.keys()
@@ -42,7 +42,7 @@ class GroupedConvCommits:
         return any((type_ not in ["feat", "fix"] and type_ in keys) for type_ in CONV_COMMIT_TYPES)
 
     def has_breaking_change(self) -> bool:
-        return len(self.braking_changes) > 0
+        return len(self.breaking_changes) > 0
 
     def get_highest_change(self) -> ChangeType:
         if self.has_breaking_change():
