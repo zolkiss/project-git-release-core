@@ -5,6 +5,7 @@ from unittest.mock import mock_open, MagicMock
 import pytest
 from typer.testing import CliRunner
 
+from common_util import clean_text
 from project_git_release import Connector, ReleaseEngine
 from project_git_release.runner import app
 
@@ -51,8 +52,9 @@ def test_runner_parameters_missing_params():
     result = runner.invoke(app, [])
 
     assert result.exit_code == 2
-    assert result.stderr.find("Invalid value: Invalid repo configuration. The git-repo-url, git-repo-owner") != -1
-    assert result.stderr.find("and git-repo-name needs to be set via options or env variables") != -1
+    assert clean_text(result.stderr).find(
+        "Invalid value: Invalid repo configuration. The git-repo-url, git-repo-owner") != -1
+    assert clean_text(result.stderr).find("and git-repo-name needs to be set via options or env variables") != -1
 
 
 def test_runner_parameters_no_token_value(release_config):
@@ -61,7 +63,7 @@ def test_runner_parameters_no_token_value(release_config):
                            catch_exceptions=False)
 
     assert result.exit_code == 2
-    assert result.stderr.find("Invalid value for --git-token-env-var: Cannot find PGR_TOKEN in the") != -1
+    assert clean_text(result.stderr).find("Invalid value for --git-token-env-var: Cannot find PGR_TOKEN in the") != -1
 
 
 def test_runner_parameters_both_token_values_used(release_config):
@@ -71,8 +73,8 @@ def test_runner_parameters_both_token_values_used(release_config):
                            catch_exceptions=False)
 
     assert result.exit_code == 2
-    assert result.stderr.find("Invalid value: Invalid configuration. --git-token-env-var and") != -1
-    assert result.stderr.find("--git-token-file cannot be used in the same time") != -1
+    assert clean_text(result.stderr).find("Invalid value: Invalid configuration. --git-token-env-var and") != -1
+    assert clean_text(result.stderr).find("--git-token-file cannot be used in the same time") != -1
 
 
 def test_runner_parameters_file_token_not_exists(release_config):
@@ -81,7 +83,7 @@ def test_runner_parameters_file_token_not_exists(release_config):
                            catch_exceptions=False)
 
     assert result.exit_code == 2
-    assert result.stderr.find("Cannot find token.txt, or it is not") != -1
+    assert clean_text(result.stderr).find("Cannot find token.txt, or it is not") != -1
 
 
 def test_runner_parameters_file_token_exists_but_empty(release_config, mocker):
@@ -95,7 +97,7 @@ def test_runner_parameters_file_token_exists_but_empty(release_config, mocker):
                            catch_exceptions=False)
 
     assert result.exit_code == 2
-    assert result.stderr.find("Invalid value for --git-token-file: The token file token.txt is empty") != -1
+    assert clean_text(result.stderr).find("Invalid value for --git-token-file: The token file token.txt is empty") != -1
 
 
 def test_runner_parameters_file_token_exists_and_valid(release_config, mocker, log_error_spy, dummy_connector):
@@ -130,7 +132,7 @@ def test_connector_cannot_found_by_name(release_config, mocker, dummy_connector)
                            catch_exceptions=False)
 
     assert result.exit_code == 2
-    assert result.stderr.find("Invalid connector is set: not-valid") != -1
+    assert clean_text(result.stderr).find("Invalid connector is set: not-valid") != -1
 
 
 def test_connector_found_by_name(release_config, mocker, dummy_connector, log_error_spy):
