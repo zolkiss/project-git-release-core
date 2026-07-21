@@ -28,6 +28,11 @@ jobs:
       - name: Building
         run: python -m build
 
+      - name: Debug
+        run: |
+          echo "TERM: $TERM"
+          echo "COLUMNS: $COLUMNS"
+
       - name: Running tests
         run: |
           pip install -e ".[test]"
