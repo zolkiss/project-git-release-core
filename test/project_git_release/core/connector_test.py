@@ -1,6 +1,6 @@
 import pytest
 
-from project_git_release.test_classes import DummyConnector
+from test_classes import DummyConnector
 
 
 @pytest.fixture

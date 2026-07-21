@@ -2,11 +2,11 @@ from tempfile import TemporaryDirectory
 from unittest.mock import MagicMock
 
 import pytest
+from test_classes import DummyConnector
 
 from project_git_release import ReleaseEngine, Connector
 from project_git_release.common.changelog_generator import ChangelogGenerator
 from project_git_release.git import GitCommander
-from project_git_release.test_classes import DummyConnector
 
 _DEFAULT_TEMP_DIR_NAME = "//temp/dir"
 

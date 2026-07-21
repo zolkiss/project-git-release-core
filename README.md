@@ -89,7 +89,9 @@ As input parameters, it accepts:
 #### Sample
 
 ```python
+from tempfile import TemporaryDirectory
 from project_git_release import ReleaseEngine
+from project_git_release.git import GitCommander
 from project_git_release.core.release_config import ReleaseConfig
 from project_git_release.registry import get_connector
 
@@ -103,8 +105,14 @@ config = ReleaseConfig(token, url, owner, repo,
                        git_verbose_logging=True,
                        release_version_prefix="v")
 
-connector = get_connector("gitea")
-engine = ReleaseEngine(connector, config, auto_delete_temp_dir=False)
+connector_type = get_connector("gitea")
+connector = connector_type(config)
+
+temporary_directory = TemporaryDirectory(prefix="git-release-", delete=config.auto_delete_temp_dir)
+git_commander = GitCommander(config, temporary_directory.name)
+
+engine = ReleaseEngine(connector=connector, temp_dir=temporary_directory, git_commander=git_commander,
+                       config=config)
 engine.update_version()
 ```
 ## About the author
