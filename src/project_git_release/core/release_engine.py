@@ -17,10 +17,13 @@ from project_git_release.git import GitCommander
 
 
 class ReleaseEngine:
-    def __init__(self, connector_type: type[Connector], config: ReleaseConfig, auto_delete_temp_dir: bool = True):
-        self.connector = connector_type(config)
-        self.temp_dir = TemporaryDirectory(prefix="git-release-", delete=auto_delete_temp_dir)
-        self.git = GitCommander(config, self.temp_dir.name)
+    def __init__(self, connector: Connector,
+                 config: ReleaseConfig,
+                 temp_dir: TemporaryDirectory,
+                 git_commander: GitCommander):
+        self.connector = connector
+        self.temp_dir = temp_dir
+        self.git = git_commander
         self.config = config
 
     def update_version(self):
