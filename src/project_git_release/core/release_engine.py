@@ -111,32 +111,6 @@ class ReleaseEngine:
 
         return unreleased_versions
 
-    def __get_latest_unreleased_version(self) -> GitRelease | None:
-        closed_release_prs = self.connector.get_latest_release_prs("closed")
-        latest_merged_release_pr = None
-        version = None
-        for pr in closed_release_prs:
-            if pr.merged:
-                version_pattern = build_version_regex(self.config.release_version_prefix)
-                match = version_pattern.search(pr.title)
-                if match is None:
-                    log.warning("The merged PR (%s) does not have version information", pr.title)
-                    continue
-                else:
-                    version = match.group(VersionParts.FULL_VERSION)
-                    latest_merged_release_pr = pr
-                    break
-
-        if latest_merged_release_pr is None or version is None:
-            log.warning("Couldn't find a not merged closed release PR in the PR history.")
-            return None
-
-        tag_details = self.connector.get_release_by_tag(version)
-        if tag_details is not None:
-            return None
-
-        return GitRelease(version, latest_merged_release_pr.title, latest_merged_release_pr.commit_sha)
-
     def __prepare_release_branch_locally(self):
         self.__checkout_default_branch()
         release_branch_exists = self.git.is_release_branch_exists()
