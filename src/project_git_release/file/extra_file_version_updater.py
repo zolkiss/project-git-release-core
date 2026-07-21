@@ -21,7 +21,7 @@ class ExtraFileVersionUpdater:
 
     @staticmethod
     def __str_key_not_defined(key: str, config: dict) -> bool:
-        return ExtraFileVersionUpdater.__has_key(key, config) and config[key].strip() == ""
+        return not (ExtraFileVersionUpdater.__has_key(key, config) and config[key].strip() != "")
 
     def __init__(self, config: ReleaseConfig, extra_file_config: dict, temp_dir: TemporaryDirectory):
         self.config = config
@@ -45,7 +45,7 @@ class ExtraFileVersionUpdater:
             repo_path = json_config["repo_path"]
             file_path = Path(f"{self.temp_dir.name}/{repo_path}")
             if not file_path.exists():
-                log.warn("Cannot find target JSON file from config: %s", repo_path)
+                log.warning("Cannot find target JSON file from config: %s", repo_path)
                 continue
 
             with open(file_path, "r") as fr:
@@ -55,14 +55,14 @@ class ExtraFileVersionUpdater:
             json_path_exp = parse(version_path)
 
             updated_json_file = copy.deepcopy(json_file)
-            json_path_creation_allowed = self.__eval_create_if_not_exists(updated_json_file)
+            json_path_creation_allowed = self.__eval_create_if_not_exists(json_config)
             if json_path_creation_allowed:
                 json_path_exp.update_or_create(updated_json_file, new_version.get_full_version())
             else:
                 json_path_exp.update(updated_json_file, new_version.get_full_version())
 
             if updated_json_file == json_file:
-                log.warn("Cannot find version path (%s) in the %s file", version_path, repo_path)
+                log.warning("Cannot find version path (%s) in the %s file", version_path, repo_path)
             else:
                 with open(file_path, "w") as fw:
                     json.dump(updated_json_file, fw, indent=4)
@@ -72,7 +72,7 @@ class ExtraFileVersionUpdater:
             log.info("Updating version in %s", text_file_path)
             file_path = Path(f"{self.temp_dir.name}/{text_file_path}")
             if not file_path.exists():
-                log.warn("Cannot find target text file from config: %s", text_file_path)
+                log.warning("Cannot find target text file from config: %s", text_file_path)
                 continue
 
             with open(file_path, "r") as fr:
@@ -109,7 +109,7 @@ class ExtraFileVersionUpdater:
                 updated_lines = self.__update_block_versions(lines_to_update, semver_version_patter, new_version,
                                                              text_append_missing)
                 if updated_lines == lines_to_update:
-                    log.warn("No update happened in the marked lines")
+                    log.warning("No update happened in the marked lines")
                 else:
                     text_file[idx_start:idx_end] = updated_lines
 
@@ -118,7 +118,7 @@ class ExtraFileVersionUpdater:
                 updated_line = self.__update_inline_version(line, semver_version_patter, new_version,
                                                             text_append_missing)
                 if updated_line == line:
-                    log.warn("No update happened in the inline marked line")
+                    log.warning("No update happened in the inline marked line")
                 else:
                     text_file[idx] = updated_line
 
@@ -144,7 +144,7 @@ class ExtraFileVersionUpdater:
                     if ends_with_newline:
                         updated_line += "\n"
                 else:
-                    log.warn("Cannot find version to update. Appending to end of the line...")
+                    log.warning("Cannot find version to update. Appending to end of the line...")
             else:
                 old_version = matches.group(VersionParts.FULL_VERSION)
                 log.info("Found old version: %s", old_version)
@@ -160,11 +160,10 @@ class ExtraFileVersionUpdater:
             if text_append_missing:
                 marker_pattern = self.__build_markter_patter(self.config.version_config_marker)
                 marker = marker_pattern.search(line)
-                if marker is None:
-                    log.error("Cannot identify inline marker in line: %s. Skipping", line)
-                updated_line = line.replace(marker.group(0), f"{new_version.get_full_version()} {marker.group(0)}")
+                if marker is not None:
+                    updated_line = line.replace(marker.group(0), f"{new_version.get_full_version()} {marker.group(0)}")
             else:
-                log.warn("Cannot find version to update. Appending to end of the line...")
+                log.warning("Cannot find version to update. Appending to end of the line...")
         else:
             updated_line = line.replace(matches.group(VersionParts.FULL_VERSION), new_version.get_full_version())
         return updated_line

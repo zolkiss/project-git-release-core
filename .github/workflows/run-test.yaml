@@ -30,5 +30,12 @@ jobs:
 
       - name: Running tests
         run: |
-          pip install -r src/project_git_release_core.egg-info/requires.txt
+          pip install -e ".[test]"
           pytest .
+
+      - name: Uploading test artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-result
+          path: htmlcov/

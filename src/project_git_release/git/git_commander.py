@@ -64,13 +64,14 @@ class GitCommander:
     def update_release_branch(self) -> bool:
         command = ["git", "fetch", "origin", f"{self.config.release_branch}:{self.config.release_branch}"]
         self.__log_command(command)
-        if not self.__run_git_command(command, f"Error wile fetchin origin/{self.config.release_branch}"):
+        fetch_result = self.__run_git_command(command, f"Error wile fetching origin/{self.config.release_branch}")
+        if not fetch_result.result:
             return False
 
         command = ["git", "checkout", self.config.release_branch]
         self.__log_command(command)
         branch_checked_out = self.__run_git_command(command, "Error while checking out existing release branch")
-        if not branch_checked_out:
+        if not branch_checked_out.result:
             return False
 
         command = ["git", "reset", "--hard", f"origin/{self.config.default_branch}"]
@@ -115,7 +116,7 @@ class GitCommander:
         return force_push.result
 
     def get_commits_since_latest_release(self, latest_release_commit: str | None, hash_until: str | None) -> list[
-        GitHashAndMsg]:
+                                                                                                                 GitHashAndMsg] | None:
         default_branch_ref = f"origin/{self.config.default_branch}"
         command = ["git", "log", default_branch_ref, "--reverse", f"--pretty=%H{COMMIT_SEPARATOR}%s"]
         if latest_release_commit is not None:
@@ -129,7 +130,7 @@ class GitCommander:
         self.__log_command(command)
         commits = self.__run_git_command(command, f"Error while getting commits for {default_branch_ref}")
         if not commits.result:
-            exit(1)
+            return None
 
         return_list = []
         for commit in commits.stdout.splitlines():
@@ -154,7 +155,7 @@ class GitCommander:
         for line in commits.stdout.splitlines():
             line_parts = line.split(COMMIT_SEPARATOR)
             if len(line_parts) != 2:
-                log.warn(f"Cannot split commit line '{line}'")
+                log.warning(f"Cannot split commit line '{line}'")
                 continue
 
             file_history.append(ShortCommitData(

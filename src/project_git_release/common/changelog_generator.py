@@ -56,7 +56,7 @@ class ChangelogGenerator:
         new_changes = f"## [{new_version.get_full_version()}]({release_url}) (📅 {datetime.datetime.now().strftime("%Y-%m-%d")})\n"
         if grouped_commits.has_breaking_change():
             new_changes += "\n".join(generate_change_chapters("Breaking changes",
-                                                              [grouped_commits.braking_changes]))
+                                                              [grouped_commits.breaking_changes]))
         if grouped_commits.has_feature():
             new_changes += "\n".join(generate_change_chapters("Features",
                                                               [grouped_commits.get_features()]))

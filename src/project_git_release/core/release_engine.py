@@ -17,10 +17,13 @@ from project_git_release.git import GitCommander
 
 
 class ReleaseEngine:
-    def __init__(self, connector_type: type[Connector], config: ReleaseConfig, auto_delete_temp_dir: bool = True):
-        self.connector = connector_type(config)
-        self.temp_dir = TemporaryDirectory(prefix="git-release-", delete=auto_delete_temp_dir)
-        self.git = GitCommander(config, self.temp_dir.name)
+    def __init__(self, connector: Connector,
+                 config: ReleaseConfig,
+                 temp_dir: TemporaryDirectory,
+                 git_commander: GitCommander):
+        self.connector = connector
+        self.temp_dir = temp_dir
+        self.git = git_commander
         self.config = config
 
     def update_version(self):
@@ -34,7 +37,10 @@ class ReleaseEngine:
             actual_commit = latest_unreleased_commit
 
         commit_list = self.__find_commits_since_last_release(actual_commit)
-        if len(commit_list) == 0:
+        if commit_list is None:
+            log.error("Error while getting commits since last release...")
+            exit(1)
+        elif len(commit_list) == 0:
             log.info("There is no commit since the latest release. Quitting...")
             exit(0)
 
@@ -64,13 +70,17 @@ class ReleaseEngine:
                     previous_release = reverse_unreleased_versions[idx - 1]
                 commit_list = self.__find_commits_since_last_release(previous_release,
                                                                      unreleased_version)
-                if len(commit_list) == 0:
+
+                if commit_list is None:
+                    log.error("Error while getting commits since last release...")
+                    exit(1)
+                elif len(commit_list) == 0:
                     log.info("There is no commit since the latest release. Quitting...")
                     exit(0)
                 commits_without_release = [commit for commit in commit_list if
                                            commit.hash != unreleased_version.commit_sha]
                 grouped_commits = group_conv_commit_details(resolve_commit_messages(commits_without_release))
-                change_log = generate_release_log(grouped_commits, previous_release, unreleased_version)
+                change_log = generate_release_log(self.config, grouped_commits, previous_release, unreleased_version)
                 log.info("Generated changelog for release:\n%s", change_log)
 
                 response = self.connector.create_release(unreleased_version, change_log)
@@ -100,32 +110,6 @@ class ReleaseEngine:
                 unreleased_versions.append(GitRelease(version, commit.message, commit.sha))
 
         return unreleased_versions
-
-    def __get_latest_unreleased_version(self) -> GitRelease | None:
-        closed_release_prs = self.connector.get_latest_release_prs("closed")
-        latest_merged_release_pr = None
-        version = None
-        for pr in closed_release_prs:
-            if pr.merged:
-                version_pattern = build_version_regex(self.config.release_version_prefix)
-                match = version_pattern.search(pr.title)
-                if match is None:
-                    log.warn("The merged PR (%s) does not have version information", pr.title)
-                    continue
-                else:
-                    version = match.group(VersionParts.FULL_VERSION)
-                    latest_merged_release_pr = pr
-                    break
-
-        if latest_merged_release_pr is None or version is None:
-            log.warn("Couldn't find a not merged closed release PR in the PR history.")
-            return None
-
-        tag_details = self.connector.get_release_by_tag(version)
-        if tag_details is not None:
-            return None
-
-        return GitRelease(version, latest_merged_release_pr.title, latest_merged_release_pr.commit_sha)
 
     def __prepare_release_branch_locally(self):
         self.__checkout_default_branch()
@@ -174,7 +158,7 @@ class ReleaseEngine:
 
     def __find_commits_since_last_release(self, latest_release_commit: GitRelease | None,
                                           hash_until: GitRelease | None = None) -> \
-            list[CommitDetails]:
+            list[CommitDetails] | None:
         commit_sha = None
         if latest_release_commit is not None:
             commit_sha = latest_release_commit.commit_sha
@@ -184,6 +168,8 @@ class ReleaseEngine:
             hash_until_sha = hash_until.commit_sha
 
         hash_and_msg_list = self.git.get_commits_since_latest_release(commit_sha, hash_until_sha)
+        if hash_and_msg_list is None:
+            return None
 
         return [
             details
@@ -253,7 +239,7 @@ class ReleaseEngine:
     def __generate_commit_text(next_version: NewVersion, grouped_commits: GroupedConvCommits) -> str:
         content = [f"# ⚙️Preparing release {next_version.get_full_version()}🔨"]
         if grouped_commits.has_breaking_change():
-            chapters = generate_change_chapters("Breaking changes ⛓️‍💥", [grouped_commits.braking_changes])
+            chapters = generate_change_chapters("Breaking changes ⛓️‍💥", [grouped_commits.breaking_changes])
             content.append("")
             content.extend(chapters)
         if grouped_commits.has_feature():
@@ -264,7 +250,8 @@ class ReleaseEngine:
             chapters = generate_change_chapters("Bugfix(es) 🩹", [grouped_commits.get_fixes()])
             content.append("")
             content.extend(chapters)
-        if grouped_commits.has_other_change():
+        if (grouped_commits.has_other_change()
+                or len(grouped_commits.invalid_commits) > 0):
             chapters = generate_change_chapters("Other changes ❓",
                                                 [grouped_commits.get_other_changes(), grouped_commits.invalid_commits],
                                                 True)

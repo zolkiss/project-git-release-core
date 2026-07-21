@@ -2,6 +2,7 @@ import os
 from enum import Enum
 from importlib.metadata import entry_points
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Annotated, cast, TypeVar
 
 import typer
@@ -10,6 +11,7 @@ from typer._click.core import ParameterSource
 from project_git_release import log, ReleaseEngine
 from project_git_release.classes.runner_helper import runner_config
 from project_git_release.core import ReleaseConfig
+from project_git_release.git import GitCommander
 
 app = typer.Typer()
 
@@ -54,7 +56,7 @@ def _list_env_vars(value: bool) -> None:
 
 def _read_env_and_env_file(env_file_path: Path) -> dict:
     if env_file_path != _DEFAULT_ENV_FILE_PATH and (not env_file_path.exists() or not env_file_path.is_file()):
-        log.error("Cannot find environment file on path %s", env_file_path)
+        log.error("Cannot find environment file on path %s", env_file_path.name)
         exit(1)
     env_variables = dict()
     for key in os.environ.keys():
@@ -232,7 +234,7 @@ def run(
     _validate_git_repo_properties(ctx, config_from_envs)
     token = _resolve_git_token(ctx, config_from_envs, "git_token_env_var", "git_token_file")
     connector_name = _resolve_env_and_cli_options(ctx, config_from_envs, runner_config.connector.env_name, "connector")
-    connector = _resolve_connector(ctx, connector_name)
+    connector_type = _resolve_connector(ctx, connector_name)
 
     config = ReleaseConfig(
         token=token,
@@ -278,10 +280,15 @@ def run(
                                                           runner_config.auto_delete_temp_dir.env_name,
                                                           "auto_delete_temp_dir")
     )
-    engine = ReleaseEngine(connector, config, auto_delete_temp_dir=False)
+
+    connector = connector_type(config)
+    temporary_directory = TemporaryDirectory(prefix="git-release-", delete=config.auto_delete_temp_dir)
+    git_commander = GitCommander(config, temporary_directory.name)
+    engine = ReleaseEngine(connector=connector, temp_dir=temporary_directory, git_commander=git_commander,
+                           config=config)
     if action == Actions.update:
         engine.update_version()
-    elif action ==  Actions.release:
+    elif action == Actions.release:
         engine.release_unreleased_prs()
     elif action == Actions.auto:
         log.error("Unsupported operation so far...")

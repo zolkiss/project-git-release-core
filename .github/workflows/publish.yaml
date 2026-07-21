@@ -31,7 +31,7 @@ jobs:
 
       - name: Running tests
         run: |
-          pip install -r src/project_git_release_core.egg-info/requires.txt
+          pip install -e ".[test]"
           pytest .
 
       - name: Uploading artifacts
