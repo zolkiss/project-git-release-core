@@ -96,7 +96,7 @@ def _resolve_git_token(ctx: typer.Context, config_from_envs: dict, git_env_token
 
     if is_env_file_default:
         git_token_env = ctx.params[git_env_token_key]
-        if git_token_env in config_from_envs.keys():
+        if git_token_env in os.environ:
             return config_from_envs[git_token_env]
         else:
             raise typer.BadParameter(
