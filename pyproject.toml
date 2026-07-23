@@ -1,6 +1,6 @@
 [project]
 name = "project-git-release-core"
-version = "0.0.1-008"
+version = "0.0.1-009"
 authors = [
     { name = "zolkiss", email = "kisszoltan89@gmail.com" }
 ]
