@@ -207,8 +207,8 @@ class ReleaseEngine:
 
         highest_change: ChangeType = grouped_commits.get_highest_change()
         if highest_change == ChangeType.NONE:
-            log.info("No version change is calculated. Returning the input version: {}", GitRelease.tag_name)
-            return NewVersion(GitRelease.tag_name, "")
+            log.info("No version change is calculated. Returning the input version: {}", semver)
+            return NewVersion(semver, "")
 
         if highest_change == ChangeType.MAJOR:
             semver_parts[0] = str(int(semver_parts[0]) + 1)
