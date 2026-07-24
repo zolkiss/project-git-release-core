@@ -68,12 +68,30 @@ While the runner supports the `--help` parameter, you can list the environment v
 
 #### Sample
 
+#### Run from command line
 ```shell
 pip install project-git-release-core project-git-release-connector-gitea
 
 python3 -m project_git_release --env-file-path "[VALID_PATH_TO_DOT_ENV]" update
 ```
 
+#### Config (.git-release-conf.json) sample
+
+```json
+{
+  "extra_files": {
+    "json": [
+      {
+        "repo_path": "some/path/test_config.json",
+        "version_path": "$.app.version"
+      }
+    ],
+    "text": [
+      "some/path/test_config_inline_no_marker.yaml"
+    ]
+  }
+}
+```
 ### Python code
 
 While currently the suggested mode is to use this from the command line, you can invoke the logic from code.
